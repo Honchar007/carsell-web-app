@@ -1,0 +1,20 @@
+@import './colors';
+
+/* LAYOUT */
+$sm-breakpoint: 576px;
+$md-breakpoint: 768px;
+$lg-breakpoint: 992px;
+$xl-breakpoint: 1200px;
+$xxl-breakpoint: 1440px;
+
+/* TYPOGRAPHY */
+$font-system: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto,
+'Helvetica Neue', Arial, sans-serif;
+$font-family-heading: 'Montserrat', $font-system;
+$font-family-content: 'Open Sans', $font-system;
+
+/* SHADOWS */
+$shadow-common: 0px 4px 16px rgba(252, 252, 253, 0.2);
+$shadow-button: 0px 4px 16px rgba(252, 252, 253, 0.4);
+$shadow-card-blur: inset -5px -5px 250px rgba(255, 255, 255, 0.02);
+$shadow-overlay: 0px 4px 10px rgba(241, 141, 108, 0.1);

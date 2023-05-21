@@ -1,0 +1,38 @@
+$color-white: #FCFCFD;
+$color-neutrals-6: #E6E8EC;
+$color-peach: #c0998d;
+$color-peach-primary: #BF968B;
+$color-peach-secondary: #ddc767;
+$color-primary-dark: #629068;
+$color-background: #11131B;
+$color-accent-component-background: #292B32;
+$color-secondary-component-background: #393A3F;
+$color-card-border: #353945;
+$color-underline: #27292F;
+$color-dark-gray: #2B2C33;
+$color-secondary-background-molecules: #17212B;
+$color-secondary-background-blur: #1E2027;
+$color-error: #EF466F;
+$color-grey: #7CA9A9;
+$color-blue: #0365F4;
+$color-green: #1BB55C;
+$color-viridian-green: #7eaaaa;
+$color-viridian-green-border: #7eaaaada;
+
+
+// Background
+$color-grey-background: rgba(17, 19, 27, 0.5);
+
+/* GRADIENTS */
+
+// Radial Gradient
+$gradient-grey: radial-gradient(211.9% 288.46% at -87.1% -72.31%, rgba(0, 0, 0, 0.4) 0%, rgba(255, 255, 255, 0) 100%),
+$color-accent-component-background;
+// Card Gradient w bg
+$gradient-dark: radial-gradient(100% 100% at 0% 0%, rgba(255, 98, 43, 0.4) 0%, rgba(255, 255, 255, 0) 100%),
+$color-accent-component-background;
+// Card Gradient
+$gradient-light: radial-gradient(100% 100% at 0% 0%, rgba(255, 98, 43, 0.4) 0%, rgba(255, 255, 255, 0) 100%),
+$color-white;
+$gradient-ukraine: linear-gradient(90deg, rgba(9,17,121,1) 25%, rgba(239,220,3,1) 100%);
+$gradient-card: linear-gradient(90deg, rgba(9,38,121,0.6223739495798319) 12%, rgba(9,17,121,0.8352591036414566) 32%, rgba(5,197,159,0.9360994397759104) 64%, rgba(3,226,239,1) 100%);

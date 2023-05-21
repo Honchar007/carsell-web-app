@@ -1,0 +1,205 @@
+@import './typography';
+
+/* LAYOUT */
+
+@mixin for-xs-width {
+  @media (max-width: ($sm-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-sm-width {
+  @media (min-width: $sm-breakpoint) and (max-width: ($md-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-md-width {
+  @media (min-width: $md-breakpoint) and (max-width: ($lg-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-lg-width {
+  @media (min-width: $lg-breakpoint) and (max-width: ($xl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-xl-width {
+  @media (min-width: $xl-breakpoint) and (max-width: ($xxl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-xxl-width {
+  @media (min-width: $xxl-breakpoint) {
+    @content;
+  }
+}
+
+@mixin for-xs-sm-width {
+  @media (max-width: ($md-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-sm-md-width {
+  @media (min-width: $sm-breakpoint) and (max-width: ($lg-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-md-lg-width {
+  @media (min-width: $md-breakpoint) and (max-width: ($xl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-lg-xl-width {
+  @media (min-width: $lg-breakpoint) and (max-width: ($xxl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-xl-xxl-width {
+  @media (min-width: $xl-breakpoint) {
+    @content;
+  }
+}
+
+@mixin for-xs-sm-md-width {
+  @media (max-width: ($lg-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-sm-md-lg-width {
+  @media (min-width: $sm-breakpoint) and (max-width: ($xl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-md-lg-xl-width {
+  @media (min-width: $md-breakpoint) and (max-width: ($xxl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-lg-xl-xxl-width {
+  @media (min-width: $lg-breakpoint) {
+    @content;
+  }
+}
+
+@mixin for-xs-sm-md-lg-width {
+  @media (max-width: ($xl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-sm-md-lg-xl-width {
+  @media (min-width: $sm-breakpoint) and (max-width: ($xxl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-md-lg-xl-xxl-width {
+  @media (min-width: $md-breakpoint) {
+    @content;
+  }
+}
+
+@mixin for-xs-sm-md-lg-xl-width {
+  @media (max-width: ($xxl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
+@mixin for-xs-md-lg-xl-xxl-width {
+  @media (min-width: $xs-breakpoint) {
+    @content;
+  }
+}
+
+/* GRID */
+
+/* HELPERS */
+
+/* COMPONENTS */
+
+@mixin main-layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 4rem;
+
+  @include for-xs-sm-md-lg-width {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  @include for-xs-sm-md-width {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @include for-xs-width {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  & > * {
+    max-width: 82rem;
+  }
+}
+
+@mixin hide-scrollbar {
+  scrollbar-width: none;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* COMPLEX COMPONENTS */
+
+@mixin checkbox-button {
+  .checkmark {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: $color-viridian-green;
+    border: 2px solid $color-grey;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    cursor: pointer;
+
+    &::after {
+      width: 7px;
+      height: 14px;
+      border: solid $color-background;
+      border-width: 0 2px 2px 0;
+      transform: translateY(-3px) rotate(45deg);
+      transition: opacity 0.3s ease-in-out;
+      content: '';
+      opacity: 0;
+    }
+  }
+
+  input:checked + .checkmark {
+    background-color: $color-grey;
+    border-color: $color-viridian-green;
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  input:disabled + .checkmark {
+    border-color: $color-secondary-component-background;
+    cursor: not-allowed;
+  }
+}

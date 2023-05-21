@@ -1,0 +1,111 @@
+@import './variables';
+
+@mixin typo-headline-1 {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 4rem;
+  line-height: 5.375rem;
+}
+
+@mixin typo-headline-2 {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 2.625rem;
+  line-height: 3.25rem;
+}
+
+@mixin typo-headline-3 {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+}
+
+@mixin typo-headline-4 {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.375rem;
+  line-height: 1.5rem;
+}
+
+@mixin typo-body-large-medium {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 1.125rem;
+  line-height: 1.375rem;
+  letter-spacing: 0.15px;
+}
+
+@mixin typo-body-large-semi-bold {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.375rem;
+  letter-spacing: 0.15px;
+}
+
+@mixin typo-body-regular {
+  font-family: $font-family-content;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+  letter-spacing: 0.5px;
+}
+
+@mixin typo-body-bold {
+  font-family: $font-family-content;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: 0.5px;
+}
+
+@mixin typo-card-body {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
+}
+
+@mixin typo-caption-normal {
+  font-family: $font-family-content;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+@mixin typo-caption-bold {
+  font-family: $font-family-content;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+@mixin typo-button-default {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.375rem;
+  letter-spacing: 0.5px;
+
+}
+
+@mixin typo-button-small {
+  font-family: $font-family-heading;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 1.275rem;
+  line-height: 1rem;
+}
