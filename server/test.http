@@ -1,0 +1,82 @@
+### Get all products
+GET http://localhost:3000/products HTTP/1.1
+
+### Get all products
+GET http://localhost:3000/products/1 HTTP/1.1
+
+### Add a product
+POST http://localhost:3000/product HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Anatolii",
+  "description": "Raditu",
+  "price": 12,
+  "category": "fruit"
+}
+
+### Post car
+POST http://localhost:3000/car HTTP/1.1
+Content-Type: application/json
+
+{
+  "ownerId": "646a836d9cf7585320e2f1d5",
+  "carPicsPath": [
+    ""
+  ],
+  "brand": "Daewoo",
+  "model": "Nubira",
+  "price": 1700,
+  "volume": 1.5,
+  "transmission": "Механіка",
+  "color": "Білий",
+  "year": 2002,
+  "town": "Миколаїв",
+  "odometr": 200,
+  "vincode": "XTA22133212",
+  "plates": "ВЕ8699ЕО",
+  "description": "Норм автомобіль",
+  "isAvtovukypSale": false,
+  "datePublication": "2023-05-22T21:34:56.789Z"
+}
+
+### Update car info
+PUT http://localhost:3000/carup/646bef061ab80c689469efe3 HTTP/1.1
+Content-Type: application/json
+
+{
+  "carPicsPath": [
+    ""
+  ],
+  "brand": "Nissan",
+  "model": "Maxima",
+  "price": 1660,
+  "volume": 2.0,
+  "transmission": "Механіка",
+  "color": "Червоний",
+  "year": 2010,
+  "odometr": 100,
+  "vincode": "XTA2200033212",
+  "plates": "ВЕ6699ЕО",
+  "description": "Кращий авто"
+}
+
+
+{
+  "_id": {
+    "$oid": "646cb8709cf75853200b1eed"
+  },
+  "brand": "ZAZ",
+  "model": "Slavuta",
+  "town": "Миколаїв",
+  "link": "link",
+  "wantToCheckId": "5345344324",
+  "firstName": "Андрій",
+  "phone": "+380680884367",
+  "email": "andrii@gmail.com",
+  "checker": {
+    "checkerId": "5345344324",
+    "name": "Анатолій",
+    "phone": "+38456546456"
+  }
+}
