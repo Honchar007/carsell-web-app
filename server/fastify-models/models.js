@@ -168,6 +168,65 @@ const generateTokenSchema = {
   },
 };
 
+const UserLoginSchema = {
+  tags: ['Authentication'],
+  body: {
+    type: 'object',
+    properties: {
+      email: { type: 'string', format: 'email', description: 'User email' },
+      password: { type: 'string', description: 'User password' },
+    },
+    required: ['email', 'password'],
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        token: { type: 'string', description: 'JWT token' },
+        refreshToken: { type: 'string', description: 'Refresh token' },
+      },
+    },
+    401: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', description: 'Error message' },
+      },
+    },
+  },
+};
+
+const UserSignupSchema = {
+  tags: ['Authentication'],
+  body: {
+    type: 'object',
+    properties: {
+      avatarPath: { type: 'string', description: 'Avatar path' },
+      firstName: { type: 'string', description: 'First name' },
+      secondName: { type: 'string', description: 'Second name' },
+      email: { type: 'string', format: 'email', description: 'Email address' },
+      phone: { type: 'string', description: 'Phone number' },
+      isAvtovukyp: {
+        type: 'boolean',
+        description: 'Indicates if the user is Avtovukyp',
+      },
+      isExpert: {
+        type: 'boolean',
+        description: 'Indicates if the user is an expert',
+      },
+      password: { type: 'string', description: 'Password' },
+    },
+    required: ['firstName', 'email', 'password'],
+  },
+  response: {
+    201: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  },
+};
+
 const validateTokenSchema = {
   description: 'Validate token',
   tags: ['Authentication'],
@@ -217,4 +276,6 @@ module.exports = {
   generateTokenSchema,
   validateTokenSchema,
   refreshTokenSchema,
+  UserLoginSchema,
+  UserSignupSchema,
 };

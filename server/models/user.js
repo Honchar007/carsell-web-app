@@ -10,7 +10,6 @@ const UserSchema = mongoose.Schema({
   isAvtovukyp: Boolean,
   isExpert: Boolean,
   password: String,
-  login: String,
 });
 
 const UserModel = mongoose.model('user', UserSchema, 'user');

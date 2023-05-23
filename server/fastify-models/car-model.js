@@ -155,10 +155,41 @@ const updateCarSchema = {
   },
 };
 
+const deleteCarSchema = {
+  tags: ['Cars'],
+  params: {
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'Car ID' },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', description: 'Success message' },
+      },
+    },
+    404: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', description: 'Error message' },
+      },
+    },
+    500: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', description: 'Error message' },
+      },
+    },
+  },
+};
+
 module.exports = {
   CarSchema,
   getAllCarsSchema,
   getCarSchema,
   createCarSchema,
   updateCarSchema,
+  deleteCarSchema,
 };

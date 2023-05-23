@@ -1,19 +1,35 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 // models
 const {
   generateTokenSchema,
   validateTokenSchema,
   refreshTokenSchema,
+  UserLoginSchema,
+  UserSignupSchema,
 } = require('./fastify-models/models');
+
 const {
   getCarSchema,
   getAllCarsSchema,
   createCarSchema,
   updateCarSchema,
+  deleteCarSchema,
 } = require('./fastify-models/car-model');
 
+const {
+  CarCheckSchema,
+  getAllCarCheckSchema,
+  getCarCheckSchema,
+  updateCarCheckSchema,
+  createCarCheckSchema,
+  deleteCarCheckSchema,
+} = require('./fastify-models/car-check-model');
+
 const CarModel = require('./models/car');
+const CarCheckModel = require('./models/car-check');
+const UserModel = require('./models/user');
 
 const connectionString = 'mongodb://127.0.0.1:27017/vroomvroom';
 
@@ -213,6 +229,185 @@ const start = async () => {
     }
   );
 
+  fastify.delete(
+    '/car-delete/:id',
+    {
+      schema: deleteCarSchema,
+    },
+    async (req, reply) => {
+      const id = req.params.id;
+
+      try {
+        const car = await CarModel.findByIdAndDelete(id);
+
+        if (!car) {
+          return reply.status(404).send({ message: 'Car not found' });
+        }
+
+        return reply.send({ message: 'Car deleted successfully' });
+      } catch (error) {
+        console.error(error);
+        return reply.status(500).send({ message: 'Internal Server Error' });
+      }
+    }
+  );
+
+  fastify.get(
+    '/car-checks',
+    {
+      schema: getAllCarCheckSchema,
+    },
+    (req, reply) => {
+      CarCheckModel.find({ 'checker.checkerId': '' })
+        .lean()
+        .select(
+          'brand model town link wantToCheckId firstName phone email checker'
+        )
+        .then((result) => {
+          reply.send(result);
+        })
+        .catch((error) => {
+          reply.send(error);
+        });
+    }
+  );
+
+  fastify.get(
+    '/car-checks-expert/:id',
+    {
+      schema: getAllCarCheckSchema,
+    },
+    (req, reply) => {
+      const id = req.params.id;
+
+      CarCheckModel.find({ 'checker.checkerId': id })
+        .lean()
+        .select(
+          'brand model town link wantToCheckId firstName phone email checker'
+        )
+        .then((result) => {
+          reply.send(result);
+        })
+        .catch((error) => {
+          reply.send(error);
+        });
+    }
+  );
+
+  fastify.get(
+    '/car-checks-own/:id',
+    {
+      schema: getAllCarCheckSchema,
+    },
+    (req, reply) => {
+      const id = req.params.id;
+      CarCheckModel.find({ wantToCheckId: id })
+        .lean()
+        .select(
+          'brand model town link wantToCheckId firstName phone email checker'
+        )
+        .then((result) => {
+          reply.send(result);
+        })
+        .catch((error) => {
+          reply.send(error);
+        });
+    }
+  );
+
+  fastify.post(
+    '/car-checks',
+    {
+      schema: createCarCheckSchema,
+    },
+    async (req, reply) => {
+      const {
+        brand,
+        model,
+        town,
+        link,
+        wantToCheckId,
+        firstName,
+        phone,
+        email,
+        checker,
+      } = req.body;
+
+      try {
+        const carCheck = new CarCheckModel({
+          brand,
+          model,
+          town,
+          link,
+          wantToCheckId,
+          firstName,
+          phone,
+          email,
+          checker,
+        });
+
+        await carCheck.save();
+        console.log(`${brand} ${model} car check saved to collection`);
+
+        reply.code(201).send(carCheck);
+      } catch (error) {
+        console.error(error);
+        reply.status(500).send({ message: 'Internal Server Error' });
+      }
+    }
+  );
+
+  fastify.put(
+    '/car-check-sign/:id',
+    { schema: updateCarCheckSchema },
+    async (req, reply) => {
+      const id = req.params.id;
+      const { checker } = req.body;
+
+      try {
+        const carCheck = await CarCheckModel.findOneAndUpdate(
+          { _id: id },
+          {
+            checker,
+          },
+          { new: true }
+        );
+        console.log(carCheck);
+        if (!carCheck) {
+          return reply.status(404).send({ message: 'Car check not found' });
+        }
+
+        return reply.send(carCheck);
+      } catch (error) {
+        console.error(error);
+        return reply.status(500).send({ message: 'Internal Server Error' });
+      }
+    }
+  );
+
+  fastify.delete(
+    '/car-check-delete/:id',
+    {
+      schema: deleteCarCheckSchema,
+    },
+    async (req, reply) => {
+      const id = req.params.id;
+
+      try {
+        const carCheck = await CarCheckModel.findByIdAndDelete(id);
+
+        if (!carCheck) {
+          return reply.status(404).send({ message: 'Car check not found' });
+        }
+
+        return reply.send({ message: 'Car check deleted successfully' });
+      } catch (error) {
+        console.error(error);
+        return reply.status(500).send({ message: 'Internal Server Error' });
+      }
+    }
+  );
+
   fastify.get(
     '/generateToken/:id',
     {
@@ -267,6 +462,85 @@ const start = async () => {
       }
     }
   );
+
+  fastify.post(
+    '/login',
+    {
+      schema: UserLoginSchema,
+    },
+    async (req, reply) => {
+      const { email, password } = req.body;
+
+      const data = {
+        email,
+      };
+
+      const user = await UserModel.findOne({ email });
+
+      if (!user) {
+        return reply.status(401).send({ message: 'Invalid credentials' });
+      }
+
+      // Compare the provided password with the hashed password stored in the user object
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return reply.status(401).send({ message: 'Invalid credentials' });
+      }
+
+      const token = fastify.jwt.sign(data);
+      const refreshToken = fastify.jwt.sign(data, { expiresIn: '7d' });
+      reply.send({ token, refreshToken });
+    }
+  );
+
+  fastify.post('/signup', { schema: UserSignupSchema }, async (req, reply) => {
+    const {
+      avatarPath,
+      firstName,
+      secondName,
+      email,
+      phone,
+      isAvtovukyp,
+      isExpert,
+      password,
+    } = req.body;
+
+    // Check if the user with the given email already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return reply
+        .status(409)
+        .send({ message: 'User with the provided email already exists' });
+    }
+
+    // Create a new user
+    const newUser = new UserModel({
+      avatarPath,
+      firstName,
+      secondName,
+      dateRegistration: new Date(),
+      email,
+      phone,
+      isAvtovukyp,
+      isExpert,
+      password,
+    });
+
+    try {
+      // Hash the user's password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      newUser.password = hashedPassword;
+
+      // Save the user to the database
+      await newUser.save();
+
+      reply.code(201).send({ message: 'User created successfully' });
+    } catch (error) {
+      console.error(error);
+      reply.status(500).send({ message: 'Internal Server Error' });
+    }
+  });
 
   fastify.get(
     '/home',
