@@ -28,6 +28,7 @@ module.exports = {
     'no-prototype-builtins': 'off',
     'vue/no-mutating-props': 'off',
     'linebreak-style': 'off',
+    'no-underscore-dangle': 'off',
     'vue/multi-word-component-names': 'off',
     'vuejs-accessibility/form-control-has-label': 'off',
     'vuejs-accessibility/label-has-for': 'off',

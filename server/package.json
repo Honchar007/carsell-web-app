@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@fastify/cors": "^8.2.1",
     "@fastify/jwt": "^6.7.1",
     "@fastify/swagger": "^8.4.0",
     "@fastify/swagger-ui": "^1.8.1",

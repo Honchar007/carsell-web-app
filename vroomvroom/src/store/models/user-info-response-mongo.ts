@@ -1,5 +1,5 @@
-interface UserInfo {
-  id: number | null,
+interface UserInfoResponseMongo {
+  _id: number | null,
   avatarPath: string | null,
   firstName: string | null,
   secondName: string | null,
@@ -10,4 +10,4 @@ interface UserInfo {
   isExpert: boolean,
 }
 
-export default UserInfo;
+export default UserInfoResponseMongo;

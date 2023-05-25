@@ -8,6 +8,8 @@ const {
   refreshTokenSchema,
   UserLoginSchema,
   UserSignupSchema,
+  UserSchema,
+  getUserSchema,
 } = require('./fastify-models/models');
 
 const {
@@ -51,6 +53,10 @@ const start = async () => {
     secret: 'mysecret',
   });
 
+  fastify.register(require('@fastify/cors'), {
+    origin: ['http://172.20.10.2:8080', 'http://192.168.1.3:8080'],
+  });
+
   await fastify.register(require('@fastify/swagger'), {
     exposeRoute: true,
     exposeHeadRoute: false,
@@ -84,7 +90,7 @@ const start = async () => {
       CarModel.find()
         .lean()
         .select(
-          'ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
+          'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
         )
         .then((result) => {
           reply.send(result);
@@ -460,6 +466,27 @@ const start = async () => {
           .status(401)
           .send({ message: 'Неверный или истекший токен обновления' });
       }
+    }
+  );
+
+  fastify.get(
+    '/user/:email',
+    {
+      schema: getUserSchema,
+    },
+    (req, reply) => {
+      const email = req.params.email;
+
+      UserModel.findOne({ email: email })
+        .lean()
+        .select('id avatarPath firstName secondName dateRegistration email phone isAvtovukyp isExpert password')
+        .then((result) => {
+          console.log(result);
+          reply.send(result);
+        })
+        .catch((err) => {
+          return err;
+        });
     }
   );
 

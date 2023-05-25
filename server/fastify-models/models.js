@@ -1,3 +1,50 @@
+const UserSchema = {
+  type: 'object',
+  properties: {
+    _id: {
+      type: 'string',
+      description: 'User ID',
+    },
+    avatarPath: {
+      type: 'string',
+      description: 'User avatar path',
+    },
+    firstName: {
+      type: 'string',
+      description: 'User first name',
+    },
+    secondName: {
+      type: 'string',
+      description: 'User second name',
+    },
+    dateRegistration: {
+      type: 'string',
+      format: 'date-time',
+      description: 'User registration date',
+    },
+    email: {
+      type: 'string',
+      description: 'User email',
+    },
+    phone: {
+      type: 'string',
+      description: 'User phone number',
+    },
+    isAvtovukyp: {
+      type: 'boolean',
+      description: 'Indicates if the user is an Avtovukyp member',
+    },
+    isExpert: {
+      type: 'boolean',
+      description: 'Indicates if the user is an expert',
+    },
+    password: {
+      type: 'string',
+      description: 'User password',
+    },
+  },
+};
+
 const createCarSchema = {
   description: 'Create a new car',
   tags: ['Cars'],
@@ -270,6 +317,24 @@ const refreshTokenSchema = {
   },
 };
 
+const getUserSchema = {
+  params: {
+    type: 'object',
+    properties: {
+      email: { type: 'string', description: 'User email' },
+    },
+  },
+  response: {
+    200: UserSchema, // Assuming you have already defined UserSchema
+    404: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', description: 'User not found' },
+      },
+    },
+  },
+};
+
 module.exports = {
   createCarSchema,
   getAllCarsSchema,
@@ -278,4 +343,6 @@ module.exports = {
   refreshTokenSchema,
   UserLoginSchema,
   UserSignupSchema,
+  getUserSchema,
+  UserSchema,
 };
