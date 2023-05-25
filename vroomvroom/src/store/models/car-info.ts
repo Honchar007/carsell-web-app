@@ -12,6 +12,7 @@ interface CarInfo {
   transmission: string,
   color: string,
   year: number,
+  town: string,
   odometr: number,
   vincode: string | null,
   plates: string | null,
