@@ -1,6 +1,5 @@
 <template>
   <header>
-    <Search class="search"/>
     <div class="menu">
       <template v-for="link in links" :key="link.name">
         <a v-if="link.href" class="menu-item" :href="link.href">
@@ -27,13 +26,11 @@ import { computed, defineComponent } from 'vue';
 
 // models
 import LinkData from '@/shared/models/link-data';
-import Search from '@/components/Search';
 import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'Header',
   components: {
-    Search,
   },
   props: {
     links: {
@@ -75,17 +72,10 @@ header {
     border-radius: 2rem;
   }
 
-  .search {
-    flex-shrink: 1;
-    flex-grow: 1;
-    width: unset;
-    max-width: 26rem;
-  }
   .menu {
     display: flex;
     justify-content: space-around;
-    width: 70%;
-    margin-left: 0.5rem;
+    width: 100%;
 
     @include for-xs-sm-width {
       flex-direction: column;

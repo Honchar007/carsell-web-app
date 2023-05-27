@@ -47,8 +47,7 @@
     </div>
     <div class="car-menu">
       <Button @click="saveAll">Зберегти</Button>
-      <Button class="delete" @click="deleteCar" outlined>Видалити публікацію</Button>
-      <Button class="delete" outlined>Повернутися назад</Button>
+      <Button @click="$router.back()" class="delete" outlined>Повернутися назад</Button>
     </div>
   </div>
   </template>
@@ -63,6 +62,7 @@ import TextArea from '@/components/TextArea';
 import FilesUploader from '@/components/FilesUploader';
 import CommonApi from '@/api/common.api';
 import getBase64Img from '@/shared/helpers/get-base64-img';
+import { useRoute } from 'vue-router';
 
 // constants
 const car = {
@@ -89,6 +89,8 @@ export default defineComponent({
     FilesUploader,
   },
   setup() {
+    const route = useRoute();
+
     const UploadedFiles = ref<any>([]);
     const id = ref<string>('');
     const info = ref<string>('');
@@ -102,6 +104,7 @@ export default defineComponent({
     const carImages = ref<any>([]);
 
     const saveAll = async () => {
+      console.log(route.params.id as string);
       const data = { ...carImages.value };
       const car = {
         price: priceTemp.value,
@@ -111,16 +114,12 @@ export default defineComponent({
         odometr: odometrTemp.value,
         description: descriptionTemp.value,
       };
-      await CommonApi.UpdateCar('646bde2c9cf75853200b1ee6', car, '646bde2c9cf75853200b1ee6');
+      await CommonApi.UpdateCar('646bde2c9cf75853200b1ee6', car, route.params.id as string);
       if (carImages.value) CommonApi.uploadImages('646bde2c9cf75853200b1ee6', { ...data }, '646bde2c9cf75853200b1ee6');
     };
 
-    const deleteCar = async () => {
-      await CommonApi.DeleteCar('21', id.value);
-    };
-
     onMounted(async () => {
-      const data = await CommonApi.getCarInfo('21', '646bde2c9cf75853200b1ee6');
+      const data = await CommonApi.getCarInfo('21', route.params.id as string);
       const imgPaths = data.carPicsPath.join(',');
       info.value = `${data.brand} ${data.model} ${data.year}`;
       priceTemp.value = data.price;
@@ -130,7 +129,7 @@ export default defineComponent({
       odometrTemp.value = data.odometr;
       transmissionTemp.value = data.transmission;
       descriptionTemp.value = data.description;
-      UploadedFiles.value = await CommonApi.getImages('21', imgPaths, 'asd');
+      if (data.carPicsPath.length > 0) { UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd'); }
       // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
     });
 
@@ -148,7 +147,6 @@ export default defineComponent({
       UploadedFiles,
       getBase64Img,
       saveAll,
-      deleteCar,
     };
   },
 });

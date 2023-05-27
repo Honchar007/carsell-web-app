@@ -61,6 +61,19 @@ const CommonApi = {
     );
     return res.data;
   },
+
+  async getCars(params: any): Promise<CarInfo[]> {
+    const res = await http.get('http://127.0.0.1:3000/cars', {
+      params,
+    });
+    return res.data;
+  },
+
+  async getModels(brand: string) {
+    const res = await http.get(`http://127.0.0.1:3000/models/${brand}`);
+    return res.data;
+  },
+
   async getCarInfo(token: string, id: string) {
     const res = await http.get(
       `http://127.0.0.1:3000/car/${id}`,

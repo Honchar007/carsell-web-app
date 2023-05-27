@@ -1,11 +1,12 @@
 <template>
   <div class="slider">
     <div class="content-wrapper">
-      <div v-for="(file, index) in images" :key="index" class="content-img">
+      <template></template>
+      <div v-for="(file, index) in images" :key="index" class="content-img" :style="getItemStyle(index)">
         <img v-if="current==index" :src="getBase64Img(file.type as string, decodeURIComponent(file.content))" :alt="`${index}`">
       </div>
     </div>
-    <div class="menu">
+    <div v-if="images.length > 1" class="menu">
       <div class="btn btn-prev" aria-label="Previous slide" @click="event => slide(event, -1)">
         &#10094;
       </div>
@@ -47,11 +48,20 @@ export default defineComponent({
         current.value = current.value === 0 ? len : current.value - 1;
       }
     };
+
+    const getItemStyle = (index: number) => {
+      const translateX = index * -100; // Adjust based on slide width
+      return {
+        transform: `translateX(${translateX}%)`,
+      };
+    };
+
     return {
       getBase64Img,
       slide,
       current,
       show,
+      getItemStyle,
     };
   },
 });
@@ -67,11 +77,11 @@ export default defineComponent({
   margin-bottom: 2rem;
 
   .content-wrapper {
+    display: flex;
     width: 100%;
 
     .content-img {
-      width: 100%;
-      height: 80%;
+      flex: 0 0 100%; // Adjust based on slide width
       margin: 0 auto;
       margin-bottom: 1rem;
       img {

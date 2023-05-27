@@ -6,6 +6,8 @@ const util = require('util');
 const { pipeline } = require('stream');
 const pump = util.promisify(pipeline);
 const mime = require('mime');
+const fuelTypes = require('./shared/fuelTypes');
+const transmissionTypes = require('./shared/transmissionTypes');
 
 // models
 const {
@@ -39,6 +41,8 @@ const {
 const CarModel = require('./models/car');
 const CarCheckModel = require('./models/car-check');
 const UserModel = require('./models/user');
+const makeFilters = require('./shared/helpers/makeFilters');
+const BrandModel = require('./models/brand-model');
 
 const connectionString = 'mongodb://127.0.0.1:27017/vroomvroom';
 
@@ -64,7 +68,7 @@ const start = async () => {
 
   fastify.register(require('@fastify/cors'), {
     origin: ['http://172.20.10.2:8080', 'http://192.168.1.2:8080', 'http://192.168.1.15:8080', 'http://localhost:8080',
-    'http://127.0.0.1:8080'],
+    'http://127.0.0.1:8080', 'http://192.168.1.3:8080'],
   });
 
   fastify.register(require('@fastify/static'), {
@@ -101,10 +105,24 @@ const start = async () => {
       schema: getAllCarsSchema,
     },
     (req, reply) => {
-      CarModel.find()
+      const query = makeFilters(req.query);
+      // const search = req.query.search || '';
+      // const minOdo = req.query.minOdo || 0;
+      // const maxOdo = req.query.maxOdo || 0;
+      // const minPrice = req.query.minPrice || 0;
+      // const maxPrice = req.query.maxPrice || 0;
+      // const minYear = req.query.minYear || 0;
+      // const maxYear = req.query.minYear || new Date().getFullYear();
+      // const fuelParam = req.query.fuel || 'All';
+      // const transmissionParam = req.query.transmission || 'All';
+
+      // const fuel = fuelParam === 'All' ? [...fuelTypes] : fuelParam.split(',');
+      // const transmission = transmissionParam === 'All' ? [...transmissionTypes] : transmissionParam.split(',')
+
+      CarModel.find(query)
         .lean()
         .select(
-          'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
+          'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication fuel'
         )
         .then((result) => {
           reply.send(result);
@@ -132,6 +150,25 @@ const start = async () => {
         })
         .catch((error) => {
           reply.send(error);
+        });
+    }
+  );
+
+  fastify.get(
+    '/models/:brand',
+    (req, reply) => {
+      const brand = req.params.brand;
+
+      BrandModel.findOne({ brand: brand })
+        .lean()
+        .select(
+          'models'
+        )
+        .then((result) => {
+          reply.send(result);
+        })
+        .catch((err) => {
+          return err;
         });
     }
   );

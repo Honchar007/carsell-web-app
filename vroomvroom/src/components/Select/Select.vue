@@ -4,6 +4,7 @@
     <select
       class="search-input"
       v-model="selectValue"
+      :disabled="disabled"
     >
       <option class="option" v-for="option in options" :key="option.value" :value="option.value">
         {{ option.text }}
@@ -28,8 +29,10 @@ export default defineComponent({
       type: Array as any,
       required: true,
     },
+    disabled: {
+      type: Boolean,
+    },
     modelValue: {
-      type: String,
       required: true,
     },
     nameLabel: {

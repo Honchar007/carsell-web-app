@@ -29,10 +29,10 @@
       </div>
     </div>
     <div class="car-menu">
-      <Button>Дізнатися контакти</Button>
-      <Button @click="$router.push(`/car-edit/${$route.params.id}`)">Редагувати</Button>
-      <Button>Замовити перевірку</Button>
-      <Button class="delete" outlined>Видалити</Button>
+      <Button @click="handleShowTel"> {{showTel ? curUser.phone : 'Дізнатися контакти'}}</Button>
+      <Button v-if="curUserId == carOwnerId" @click="$router.push(`/car-edit/${$route.params.id}`)">Редагувати</Button>
+      <Button v-if="curUserId != carOwnerId">Замовити перевірку</Button>
+      <Button v-if="curUserId == carOwnerId" @click="deleteCar" class="delete" outlined>Видалити</Button>
     </div>
   </div>
   </template>
@@ -40,11 +40,14 @@
 <script lang="ts">
 import CommonApi from '@/api/common.api';
 import Button from '@/components/Button';
-import { defineComponent, onMounted, ref } from 'vue';
+import {
+  computed, defineComponent, onMounted, ref,
+} from 'vue';
 
 import getBase64Img from '@/shared/helpers/get-base64-img';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Carousel from '@/components/Carousel';
+import { useStore } from 'vuex';
 
 // components
 
@@ -71,10 +74,13 @@ export default defineComponent({
     Carousel,
   },
   setup() {
+    const store = useStore();
     const route = useRoute();
+    const router = useRouter();
 
     const UploadedFiles = ref<any>([]);
     const id = ref<string>('');
+    const carOwnerId = ref<string>('');
     const info = ref<string>('');
     const priceTemp = ref<number>(car.price);
     const volumeTemp = ref<number>(car.volume);
@@ -84,15 +90,26 @@ export default defineComponent({
     const transmissionTemp = ref<string>(car.transmission);
     const descriptionTemp = ref<string>(car.description);
     const carImages = ref<any>([]);
+    const showTel = ref<boolean>(false);
+
+    const handleShowTel = () => {
+      showTel.value = !showTel.value;
+    };
 
     const deleteCar = async () => {
-      await CommonApi.DeleteCar('21', id.value);
+      await CommonApi.DeleteCar('21', route.params.id as string).then(() => router.back());
     };
+
+    const curUserId = computed(() => store.getters.getId);
+    const curUser = computed(() => store.getters.getUser);
+
+    const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     onMounted(async () => {
       const data = await CommonApi.getCarInfo('21', route.params.id as string);
       const imgPaths = data.carPicsPath.join(',');
       info.value = `${data.brand} ${data.model} ${data.year}`;
+      carOwnerId.value = data.ownerId;
       priceTemp.value = data.price;
       volumeTemp.value = data.volume;
       colorTemp.value = data.color;
@@ -108,6 +125,7 @@ export default defineComponent({
 
     return {
       car,
+      carOwnerId,
       info,
       priceTemp,
       volumeTemp,
@@ -120,6 +138,11 @@ export default defineComponent({
       UploadedFiles,
       getBase64Img,
       deleteCar,
+      curUserId,
+      curUser,
+      isAuthenticated,
+      showTel,
+      handleShowTel,
     };
   },
 });

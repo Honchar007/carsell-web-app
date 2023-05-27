@@ -1,65 +1,96 @@
 <template>
   <div class="container">
     <div class="card-wrapper">
-      <div>
-        <span>Оберіть марку автомобіля: {{ carBrand }} {{ carModel }} Авторизовано {{isAuthenticated}}</span>
+      <div class="head-search">
+        <span>Пошук</span>
+      </div>
+      <div class="search">
+        <Input
+          class="search-input"
+          v-model="searchName"
+          type="search"
+          placeholder="Search your vroom vroom..."
+          vertical-padding="0.25rem"
+          :small="true"
+          :rounded="true"
+        />
       </div>
       <div class="menu-item menu-double">
         <Select
-          v-model="carBrand"
+          v-model="brand"
           :options="Brands" :name-label="'Оберіть марку автомобіля'">Оберіть марку авто</Select>
-        <Select v-model="carModel" :options="Brands" :name-label="'Оберіть модель автомобіля'"></Select>
+        <Select
+          v-model="model"
+          :options="[{ text: '', value: '' },...models]"
+          :disabled="models.length == 0"
+          :name-label="'Оберіть модель автомобіля'"
+          >
+        </Select>
       </div>
-      <Select class="menu-item" v-model="carModel" :options="Brands" :name-label="'asd'"></Select>
       <div class="menu-item menu-double">
         <Input
           class="card-input"
-          v-model="priceFrom"
+          v-model="minPrice"
           label="Ціна від:"
         />
         <Input
           class="card-input"
-          v-model="priceTo"
+          v-model="maxPrice"
+          :error="+minPrice > +maxPrice && maxPrice != 0 ? 'Мінімальна ціна більша за максимальну' : ''"
           label="Ціна до:"
-        />
-      </div>
-      <div class="menu-item menu-double">
-        <Select v-model="carModel" :options="Brands" :name-label="'Від якого року випуску:'"></Select>
-        <Select v-model="carModel" :options="Brands" :name-label="'До якого року випуску:'"></Select>
-      </div>
-      <div class="menu-item menu-double">
-        <Input
-          class="card-input"
-          v-model="priceFrom"
-          label="Пробіг від:"
-        />
-        <Input
-          class="card-input"
-          v-model="priceTo"
-          label="Пробіг до:"
         />
       </div>
       <Button class="menu-item" :outlined="true" @click="openDropdown">Додадткові параметри</Button>
       <div v-if="dropdownOpened" class="menu-item dropdown">
         <div class="menu-item menu-double">
+          <Select
+            v-model="minYear"
+            :options="getRangeYear(1970, maxYear)"
+            :name-label="'Від якого року випуску:'">
+          </Select>
+          <Select
+            v-model="maxYear"
+            :options="getRangeYear(minYear)"
+            :name-label="'До якого року випуску:'"
+          >
+          </Select>
+        </div>
+        <div class="menu-item menu-double">
           <Input
             class="card-input"
-            v-model="priceFrom"
+            v-model="minOdo"
             label="Пробіг від:"
           />
           <Input
             class="card-input"
-            v-model="priceTo"
+            v-model="maxOdo"
             label="Пробіг до:"
+            :error="+minOdo > +maxOdo && maxOdo != 0 ? 'Мінімальна ціна більша за максимальну' : ''"
           />
-          <Select class="caryear" v-model="carModel" :options="Brands" :name-label="'До якого року випуску:'"></Select>
         </div>
         <div class="menu-item menu-double">
-          <Select v-model="carModel" :options="Brands" :name-label="'Вид палива:'"></Select>
-          <Select v-model="carModel" :options="Brands" :name-label="'Вид КПП:'"></Select>
-          <Select v-model="carModel" :options="Brands" :name-label="'Стан:'"></Select>
+          <Select v-model="fuel" :options="Fuels" :name-label="'Вид палива:'"></Select>
+          <Select v-model="transmission" :options="Transmissions" :name-label="'Вид КПП:'"></Select>
         </div>
       </div>
+      <Button class="search-btn" @click="search">
+        <img src="@/assets/icons/search.svg" alt="search" />Знайти
+      </Button>
+    </div>
+    <div class="container-cards">
+      <ProfileCarCard
+        v-for="car in cars" :key="car.price"
+        :image-car="car.image && car.image.type ? getBase64Img(car.image.type, decodeURIComponent(car.image.content)) : ''"
+        :brand="car.brand"
+        :model="car.model"
+        :price="car.price"
+        :volume="car.volume"
+        :odometr="car.odometr"
+        :year="car.year"
+        :transmission="car.transmission"
+        :description="car.description"
+        :link-path="car._id"
+      />
     </div>
   </div>
 </template>
@@ -68,7 +99,10 @@
 import {
   computed,
   defineComponent,
+  onMounted,
+  provide,
   ref,
+  watch,
 } from 'vue';
 
 // store
@@ -81,7 +115,14 @@ import Button from '@/components/Button';
 
 // constants
 import Brands from '@/shared/constants/brands';
+import Transmissions from '@/shared/constants/transmissions';
+import Fuels from '@/shared/constants/fuels';
+
 import { useStore } from 'vuex';
+import ProfileCarCard from '@/components/ProfileCarCard';
+import CommonApi from '@/api/common.api';
+import getBase64Img from '@/shared/helpers/get-base64-img';
+import getRangeYear from '@/shared/helpers/get-range-years';
 
 export default defineComponent({
   name: 'Home',
@@ -89,16 +130,27 @@ export default defineComponent({
     Select,
     Input,
     Button,
+    ProfileCarCard,
   },
   setup() {
     const store = useStore();
 
     // refs
-    const carBrand = ref<string>('Toyota');
-    const carModel = ref<string>('');
-    const priceFrom = ref<number>(0);
-    const priceTo = ref<number>(0);
+    const searchName = ref<string>('');
+    const brand = ref<string>('');
+    const model = ref<string>('');
+    const minPrice = ref<number>(0);
+    const maxPrice = ref<number>(0);
+    const minOdo = ref<number>(0);
+    const maxOdo = ref<number>(0);
+    const minYear = ref<number>(1970);
+    const maxYear = ref<number>(2023);
+    const fuel = ref<string>('');
+    const transmission = ref<string>('');
+
     const dropdownOpened = ref<boolean>(false);
+    const cars = ref<Array<any>>([]);
+    const models = ref<Array<any>>([]);
 
     const openDropdown = (): void => {
       dropdownOpened.value = !dropdownOpened.value;
@@ -107,22 +159,80 @@ export default defineComponent({
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     // helpers
-
     // async helpers
+    const fetchCarImages = async (car: any) => {
+      if (car.carPicsPath[0]) {
+        const image = await CommonApi.getImages(car._id, car.carPicsPath[0], '');
+        car.image = { ...image[0] };
+      }
+    };
+
+    const search = async () => {
+      const query: {[key: string]: any} = {};
+      if (searchName.value !== '') query.search = searchName.value;
+      if (model.value !== '') query.model = model.value;
+      if (brand.value !== '') query.brand = brand.value;
+      if (minPrice.value !== 0) query.minPrice = minPrice.value;
+      if (maxPrice.value !== 0 && +minPrice.value < +maxPrice.value) query.maxPrice = maxPrice.value;
+      if (minOdo.value !== 0) query.minOdo = minOdo.value;
+      if (maxOdo.value !== 0 && +minOdo.value < +maxOdo.value) query.maxOdo = maxOdo.value;
+      if (minYear.value !== 0) query.minYear = minYear.value;
+      if (minYear.value !== 0) query.maxYear = maxYear.value;
+      if (fuel.value !== '') query.fuel = fuel.value;
+      if (transmission.value !== '') query.transmission = transmission.value;
+      cars.value = await CommonApi.getCars({ ...query });
+    };
+
+    onMounted(async () => {
+      cars.value = await CommonApi.getCars('');
+    });
 
     // watchers
+    watch(minOdo, async (newOdo) => {
+      if (newOdo > maxOdo.value && maxOdo.value > 0) maxOdo.value = newOdo;
+    });
 
+    watch(cars, async (newCars) => {
+      for (const car of newCars) {
+        if (!car.image) {
+          await fetchCarImages(car);
+        }
+      }
+    });
+
+    watch(brand, async (newBrand) => {
+      if (newBrand !== '') {
+        const brandmodel = await CommonApi.getModels(newBrand);
+        models.value = brandmodel.models;
+      } else {
+        model.value = '';
+      }
+    });
     // lifecycle hooks
 
     return {
       Brands,
-      carModel,
-      carBrand,
-      priceFrom,
-      priceTo,
+      Transmissions,
+      Fuels,
+      searchName,
+      model,
+      brand,
+      minPrice,
+      maxPrice,
+      minOdo,
+      maxOdo,
+      minYear,
+      maxYear,
+      fuel,
+      transmission,
       dropdownOpened,
       openDropdown,
+      getBase64Img,
+      getRangeYear,
       isAuthenticated,
+      search,
+      cars,
+      models,
     };
   },
 });
@@ -130,20 +240,42 @@ export default defineComponent({
 
 <style scoped lang="scss">
 @import 'src/styles/typography';
+@import 'src/styles/mixins';
 
 .container {
   @import 'src/styles/colors';
 
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   gap: 2rem;
+
+  .container-cards {
+    width: 90%;
+  }
 
   .card-wrapper {
     display: flex;
     flex-direction: column;
+    width: 100%;
     box-sizing: border-box;
     padding: 1rem;
+
+    .search {
+      margin-bottom: 2rem;
+      .search-input {
+        width: 100%;
+      }
+    }
+
+    .head-search {
+      @include typo-headline-2;
+      color: $color-viridian-green;
+      margin-bottom: 1rem;
+    }
+
     .menu-item {
       margin-bottom: 1rem;
       width: 100%;
@@ -153,6 +285,11 @@ export default defineComponent({
       display: flex;
       flex-direction: row;
       gap: 5rem;
+
+      @include for-xs-sm-width {
+        flex-direction: column;
+        gap: 1rem;
+      }
     }
 
     .dropdown {
@@ -163,7 +300,6 @@ export default defineComponent({
 
     .card-input {
       @include typo-headline-3;
-      position: relative;
       width: 100%;
       padding: 0 1rem 1rem 1rem;
       color: $color-grey;
@@ -171,6 +307,10 @@ export default defineComponent({
       border: 2px solid transparent;
       border-radius: 1rem;
       transition: 0.3s ease-in-out all;
+
+      @include for-xs-sm-width {
+        padding: 0;
+      }
 
       &::placeholder {
         color: $color-white;
