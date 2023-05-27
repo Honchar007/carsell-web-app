@@ -66,13 +66,13 @@ const routes: Array<RouteRecordRaw> = [
         meta: { title: ['Profile'] },
       },
       {
-        path: '/car-page',
+        path: '/car-page/:id',
         name: 'carpage',
         component: CarPage,
         meta: { title: ['Car page'] },
       },
       {
-        path: '/car-edit',
+        path: '/car-edit/:id',
         name: 'car-edit',
         component: CarEdit,
         meta: { title: ['Car edit'] },

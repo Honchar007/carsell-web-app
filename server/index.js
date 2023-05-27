@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const path = require('path')
+const fs = require('fs');
+const util = require('util');
+const { pipeline } = require('stream');
+const pump = util.promisify(pipeline);
+const mime = require('mime');
 
 // models
 const {
@@ -18,6 +24,7 @@ const {
   createCarSchema,
   updateCarSchema,
   deleteCarSchema,
+  getAllOwnerCarsSchema,
 } = require('./fastify-models/car-model');
 
 const {
@@ -49,13 +56,20 @@ mongoose
 const start = async () => {
   const fastify = require('fastify')();
 
+  fastify.register(require('@fastify/multipart'));
+
   fastify.register(require('@fastify/jwt'), {
     secret: 'mysecret',
   });
 
   fastify.register(require('@fastify/cors'), {
-    origin: ['http://172.20.10.2:8080', 'http://192.168.1.3:8080'],
+    origin: ['http://172.20.10.2:8080', 'http://192.168.1.2:8080', 'http://192.168.1.15:8080', 'http://localhost:8080',
+    'http://127.0.0.1:8080'],
   });
+
+  fastify.register(require('@fastify/static'), {
+    root: path.join(__dirname, './uploads'),
+  })
 
   await fastify.register(require('@fastify/swagger'), {
     exposeRoute: true,
@@ -88,6 +102,27 @@ const start = async () => {
     },
     (req, reply) => {
       CarModel.find()
+        .lean()
+        .select(
+          'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
+        )
+        .then((result) => {
+          reply.send(result);
+        })
+        .catch((error) => {
+          reply.send(error);
+        });
+    }
+  );
+
+  fastify.get(
+    '/my-cars/:ownerId',
+    {
+      schema: getAllOwnerCarsSchema,
+    },
+    (req, reply) => {
+      const ownerId = req.params.ownerId;
+      CarModel.find({ownerId})
         .lean()
         .select(
           'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
@@ -186,6 +221,7 @@ const start = async () => {
     { schema: updateCarSchema },
     async (req, reply) => {
       const id = req.params.id;
+      console.log(req.body.payload);
       const {
         carPicsPath,
         brand,
@@ -199,7 +235,7 @@ const start = async () => {
         vincode,
         plates,
         description,
-      } = req.body;
+      } = req.body.payload;
 
       try {
         const car = await CarModel.findOneAndUpdate(
@@ -209,7 +245,7 @@ const start = async () => {
             brand: brand,
             model: model,
             price: price,
-            volume,
+            volume: volume,
             transmission,
             color,
             year,
@@ -221,7 +257,6 @@ const start = async () => {
           { new: true }
         );
 
-        console.log(car);
 
         if (!car) {
           return reply.status(404).send({ message: 'Car not found' });
@@ -378,7 +413,6 @@ const start = async () => {
           },
           { new: true }
         );
-        console.log(carCheck);
         if (!carCheck) {
           return reply.status(404).send({ message: 'Car check not found' });
         }
@@ -481,7 +515,6 @@ const start = async () => {
         .lean()
         .select('id avatarPath firstName secondName dateRegistration email phone isAvtovukyp isExpert password')
         .then((result) => {
-          console.log(result);
           reply.send(result);
         })
         .catch((err) => {
@@ -515,8 +548,9 @@ const start = async () => {
         return reply.status(401).send({ message: 'Invalid credentials' });
       }
 
-      const token = fastify.jwt.sign(data);
+      const token = fastify.jwt.sign(data, { expiresIn: '7d' });
       const refreshToken = fastify.jwt.sign(data, { expiresIn: '7d' });
+
       reply.send({ token, refreshToken });
     }
   );
@@ -568,6 +602,65 @@ const start = async () => {
       reply.status(500).send({ message: 'Internal Server Error' });
     }
   });
+
+  fastify.post('/upload', async function (req, reply) {
+
+    const data = await req.file()
+
+    await pump(data.file, fs.createWriteStream(`uploads/${ Date.now() + "-" + data.filename }`))
+
+    reply.send("SUCCESS");
+  });
+
+  fastify.get('/upload/:filename', async function (req, reply) {
+    return reply.sendFile(`/${req.params.filename}`);
+  });
+
+  fastify.get('/files/:filename', async function (req, reply) {
+    const { filename } = req.params;
+    const fileNames = filename.split(',');
+    const fileContents = [];
+    fileNames.forEach(fileName => {
+      // Get the absolute path to the file
+      const filePath = path.join(__dirname, 'uploads', fileName);
+      // Read the file content
+      const fileContent = fs.readFileSync(filePath);
+      // Add the file content to the array
+      const mimeType = mime.getType(filePath);
+      fileContents.push({ content: fileContent.toString('base64'), type: mimeType });
+    });
+
+    // Send the file contents in the response
+    reply.send(fileContents);
+  });
+
+  fastify.post('/upload-many/:id', async function (req, reply) {
+    const id = req.params.id;
+    const parts = req.parts()
+
+    let names = []
+    // eslint-disable-next-line node/no-unsupported-features/es-syntax
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        const name = Date.now() + "-" + part.filename;
+        await pump(part.file, fs.createWriteStream(`uploads/${ name }`))
+        names.push(name)
+      } else {
+        // part.type === 'field
+        console.log(part)
+      }
+    }
+    if(names.length > 0) {
+      await CarModel.findOneAndUpdate(
+        { _id: id },
+        {
+          carPicsPath: names,
+        },
+        { new: true }
+      );
+    }
+    reply.send()
+  })
 
   fastify.get(
     '/home',

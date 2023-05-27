@@ -64,6 +64,23 @@ const getAllCarsSchema = {
   },
 };
 
+const getAllOwnerCarsSchema = {
+  description: 'Get all cars',
+  tags: ['Cars'],
+  params: {
+    type: 'object',
+    properties: {
+      ownerId: { type: 'string', description: 'Owner ID' },
+    },
+  },
+  response: {
+    200: {
+      type: 'array',
+      items: CarSchema,
+    },
+  },
+};
+
 const createCarSchema = {
   tags: ['Cars'],
   body: {
@@ -192,4 +209,5 @@ module.exports = {
   createCarSchema,
   updateCarSchema,
   deleteCarSchema,
+  getAllOwnerCarsSchema,
 };

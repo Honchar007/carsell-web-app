@@ -3,7 +3,7 @@
     <div class="container">
       <div class="content-wrapper">
         <Header
-          :links="Links"
+          :links="LinksHeader"
           :height="height || 0"
         />
         <div class="content" :style="{ height: disableScroll ? `${contentHeight}px` : undefined }">
@@ -40,7 +40,8 @@ import svgIconUrl from '@/shared/helpers/svg-icon-url';
 import Header from '@/layouts/Header';
 
 // constants
-import Links from '@/shared/constants/links';
+import Links, { LinkAuth, LinkNotAuth } from '@/shared/constants/links';
+import { useStore } from 'vuex';
 
 const DESKTOP_PADDING = 32;
 const TABLET_PADDING = 102;
@@ -69,12 +70,16 @@ export default defineComponent({
     },
   },
   setup() {
+    const store = useStore();
+
     // common
     const { height, width } = useWindowResize();
 
     // refs
 
     // computed
+    const isAuthenticated = computed(() => store.getters.isAuthenticated);
+    const LinksHeader = computed(() => (isAuthenticated.value ? [...Links, LinkAuth] : [...Links, LinkNotAuth]));
     const contentHeight = computed(() => {
       const h = height.value;
       const w = width.value;
@@ -119,7 +124,8 @@ export default defineComponent({
       height,
       contentHeight,
       allLinks,
-      Links,
+      LinksHeader,
+      isAuthenticated,
     };
   },
 });

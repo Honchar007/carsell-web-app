@@ -18,6 +18,8 @@ enum Actions {
   signup = 'signup',
   refreshTokens = 'refreshTokens',
   GetUser = 'GetUser',
+  getFromLocalStorageUser = 'getFromLocalStorageUser',
+  setToLocalStorageUser = 'setToLocalStorageUser',
 }
 
 export default Actions;

@@ -1,26 +1,36 @@
 <template>
   <div class="car-page">
-    <div class="car-image-wrapper">
-      <img :src="require(`@/assets/${car.image}`)" :alt="car.brand">
+    <Carousel v-if="UploadedFiles.length > 0" :images="UploadedFiles" />
+    <div v-else class="car-image-wrapper">
+      <!-- <div v-if="UploadedFiles.length > 0">
+        <div v-for="(file, index) in UploadedFiles" :key="index" class="car-block-img">
+          <img :src="getBase64Img(file.type, decodeURIComponent(file.content))" :alt="car.brand">
+        </div>
+      </div> -->
+      <div class="car-block-no-img">
+        <img :src="require(`@/assets/car-default.jpg`)" :alt="car.brand">
+      </div>
     </div>
     <div class="car-info-main">
       <div class="car-header">
-        <div>{{ car.brand + ' ' + car.model + ' ' + car.year }}</div>
-        <div>Ціна: {{car.price}}</div>
+        <div>{{ info }}</div>
+        <div>Ціна: {{ priceTemp }}</div>
       </div>
       <div class="car-info">
-        <div class="car-info-item"><span class="car-info-headline">Пробіг:</span> {{ car.odometr }} тис. км</div>
-        <div class="car-info-item"><span class="car-info-headline">Об'єм:</span> {{ car.volume }} л.</div>
-        <div class="car-info-item"><span class="car-info-headline">КПП:</span> {{ car.transmission }}</div>
-        <div class="car-info-item"><span class="car-info-headline">Колір:</span> {{ car.color }}</div>
+        <div class="car-info-item"><span class="car-info-headline">Пробіг:</span> {{ odometrTemp }} тис. км</div>
+        <div class="car-info-item"><span class="car-info-headline">Об'єм:</span> {{ volumeTemp }} л.</div>
+        <div class="car-info-item"><span class="car-info-headline">КПП:</span> {{ transmissionTemp }}</div>
+        <div class="car-info-item"><span class="car-info-headline">Колір:</span> {{ colorTemp }}</div>
       </div>
       <div class="car-description">
-        <span class="car-info-headline">Опис:</span> {{ car.description }}
+        <div>
+          <span class="car-info-headline">Опис:</span> {{ descriptionTemp }}
+        </div>
       </div>
     </div>
     <div class="car-menu">
       <Button>Дізнатися контакти</Button>
-      <Button @click="$router.push('car-edit')">Редагувати</Button>
+      <Button @click="$router.push(`/car-edit/${$route.params.id}`)">Редагувати</Button>
       <Button>Замовити перевірку</Button>
       <Button class="delete" outlined>Видалити</Button>
     </div>
@@ -28,8 +38,13 @@
   </template>
 
 <script lang="ts">
+import CommonApi from '@/api/common.api';
 import Button from '@/components/Button';
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
+
+import getBase64Img from '@/shared/helpers/get-base64-img';
+import { useRoute } from 'vue-router';
+import Carousel from '@/components/Carousel';
 
 // components
 
@@ -53,10 +68,58 @@ export default defineComponent({
   name: 'CarPage',
   components: {
     Button,
+    Carousel,
   },
   setup() {
+    const route = useRoute();
+
+    const UploadedFiles = ref<any>([]);
+    const id = ref<string>('');
+    const info = ref<string>('');
+    const priceTemp = ref<number>(car.price);
+    const volumeTemp = ref<number>(car.volume);
+    const colorTemp = ref<string>(car.color);
+    const yearTemp = ref<number>(car.year);
+    const odometrTemp = ref<number>(car.odometr);
+    const transmissionTemp = ref<string>(car.transmission);
+    const descriptionTemp = ref<string>(car.description);
+    const carImages = ref<any>([]);
+
+    const deleteCar = async () => {
+      await CommonApi.DeleteCar('21', id.value);
+    };
+
+    onMounted(async () => {
+      const data = await CommonApi.getCarInfo('21', route.params.id as string);
+      const imgPaths = data.carPicsPath.join(',');
+      info.value = `${data.brand} ${data.model} ${data.year}`;
+      priceTemp.value = data.price;
+      volumeTemp.value = data.volume;
+      colorTemp.value = data.color;
+      yearTemp.value = data.year;
+      odometrTemp.value = data.odometr;
+      transmissionTemp.value = data.transmission;
+      descriptionTemp.value = data.description;
+      if (imgPaths.length > 0) {
+        UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd');
+      }
+      // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
+    });
+
     return {
       car,
+      info,
+      priceTemp,
+      volumeTemp,
+      colorTemp,
+      yearTemp,
+      odometrTemp,
+      transmissionTemp,
+      descriptionTemp,
+      carImages,
+      UploadedFiles,
+      getBase64Img,
+      deleteCar,
     };
   },
 });
@@ -64,6 +127,8 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import "src/styles/typography";
 @import "src/styles/colors";
+@import "src/styles/mixins";
+
 .car-page {
   display: flex;
   flex-direction: column;
@@ -74,13 +139,31 @@ export default defineComponent({
 
   .car-image-wrapper {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    width: 80%;
+    width: 100%;
+    height: 100%;
     border-radius: 2rem;
 
-    img {
-      border-radius: 2rem;
-      width: 100%;
+    .car-block-no-img {
+      height: 80%;
+      margin: 0 auto;
+      margin-bottom: 1rem;
+      img {
+        max-height: 20rem;
+        width: 100%;
+      }
+    }
+
+    .car-block-img {
+        width: 100%;
+        height: 80%;
+      margin: 0 auto;
+      margin-bottom: 1rem;
+      img {
+        width: 100%;
+        object-fit: contain;
+      }
     }
   }
 
@@ -122,11 +205,18 @@ export default defineComponent({
       color: $color-viridian-green;
     }
     .car-description {
-      padding: 0.5rem;
+      width: 100%;
       border-radius: 1rem;
       border: 0.15rem solid $color-secondary-component-background;
       color: $color-neutrals-6;
       margin-bottom: 1rem;
+
+      div {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+      }
     }
   }
 

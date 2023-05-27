@@ -1,10 +1,11 @@
 import { createStore } from 'vuex';
-import calcTimeDiff from '@/shared/helpers/calc-time-diff';
+// import calcTimeDiff from '@/shared/helpers/calc-time-diff';
 import AuthApi from '@/api/auth.api';
+import parseTokenBundle from '@/shared/helpers/parse-token-bundle';
 import UserInfo from './models/user-info';
 
 // module types
-import { Actions, Modules, Mutations } from './props';
+import { Actions, Mutations } from './props';
 import GlobalState from './models/global-state';
 import TokenBundleWithExp from './models/token-bundle-with-exp';
 import UserLogin from './models/user-login';
@@ -36,7 +37,20 @@ export default createStore({
     isLoading: true,
   },
   getters: {
-    isAuthenticated: (state): boolean => !!(state.session.token && state.session.refreshTimerId),
+    getUser: (state) => state.user,
+    getId: (state) => state.user.id,
+    getToken: (state) => state.session.token,
+    isAuthenticated: (state) => {
+      const { token } = state.session;
+      const { refreshToken } = state.session;
+
+      if (token !== null && refreshToken !== null) {
+        return true;
+      }
+
+      return false;
+    },
+    isLoading: (state) => !!state.isLoading,
     isAvtovukyp: (state): boolean => !!(state.session.token && state.session.refreshTimerId)
       && state.user.isAvtovukyp,
     isExpert: (state): boolean => state.user.isExpert,
@@ -69,30 +83,46 @@ export default createStore({
     },
   },
   actions: {
-    async [Actions.updateFromLocalStorage](
-      { commit, dispatch },
-      providedAddress?: string,
-    ): Promise<void> {
-      const address = providedAddress || await dispatch(Actions.getLastSelectedUser);
+    [Actions.getFromLocalStorage]() {
+      const tokenBundle = window.localStorage.getItem('user_data');
 
-      const tokenBundle: TokenBundleWithExp = await dispatch(Actions.getFromLocalStorage, 'user-token');
-
-      if (!tokenBundle) {
-        commit(Mutations.setLoading, false);
-        return;
+      if (tokenBundle) {
+        return JSON.parse(tokenBundle);
       }
 
-      const isTokenExpired = calcTimeDiff(tokenBundle.expDate as string) <= 0;
+      return null;
+    },
+    [Actions.getFromLocalStorageUser]() {
+      const email = window.localStorage.getItem('user_email');
 
-      if (isTokenExpired) {
-        dispatch(Actions.reqRefreshToken, { ...tokenBundle, address, forceUpdate: true });
-      } else {
-        commit(Mutations.setTokenBundle, tokenBundle);
-        await dispatch(Actions.GetUser, tokenBundle.token);
-        dispatch(Actions.setToLocalStorage, address);
-        dispatch(Actions.waitTokenExpiration);
-        commit(Mutations.setLoading, false);
+      if (email) {
+        return JSON.parse(email);
       }
+
+      return null;
+    },
+    [Actions.setToLocalStorage]({ state }) {
+      const { session: { token, refreshToken, expDate } } = state;
+
+      const tokenBundleRow = token
+        ? JSON.stringify({ token, refreshToken, expDate })
+        : '';
+      window.localStorage.setItem('user_data', tokenBundleRow);
+    },
+    [Actions.setToLocalStorageUser]({ state }) {
+      const { user: { email } } = state;
+
+      window.localStorage.setItem('user_email', email ? JSON.stringify(email) : '');
+    },
+    [Actions.clearLocalStorage]() {
+      window.localStorage.removeItem('user_data');
+    },
+    async [Actions.updateFromLocalStorage]({ commit, state, dispatch }) {
+      const tokenBundle = await dispatch(Actions.getFromLocalStorage);
+      const email = await dispatch(Actions.getFromLocalStorageUser);
+      commit(Mutations.setTokenBundle, tokenBundle);
+      await dispatch(Actions.GetUser, { email, providedToken: tokenBundle.token });
+      await dispatch(Actions.waitTokenExpiration);
     },
     async [Actions.refreshTokens]({ commit, state }): Promise<void> {
       if (state.session.refreshToken) {
@@ -106,29 +136,28 @@ export default createStore({
       }
     },
     async [Actions.login](
-      { commit, state, dispatch },
+      { commit, dispatch },
       credentials: UserLogin,
     ): Promise<void> {
       commit(Mutations.setLoading, true);
-      const { token, refreshToken } = await AuthApi.authUser(credentials.email, credentials.password);
-      console.log(token, refreshToken);
+      const rawTokenBundle = await AuthApi.authUser(credentials.email, credentials.password);
+      const tokenBundle = parseTokenBundle(rawTokenBundle);
       // Save token and refresh token in Vuex store
-      commit('setTokenBundle', { token, refreshToken });
-      if (token) {
-        await dispatch(Actions.GetUser, credentials.email);
-      }
+      await commit(Mutations.setTokenBundle, tokenBundle);
+      dispatch(Actions.setToLocalStorage);
       dispatch(Actions.waitTokenExpiration);
-      // Save token and refresh token in local storage
-      if (token) { localStorage.setItem('token', token); }
-      if (refreshToken) { localStorage.setItem('refreshToken', refreshToken); }
-      localStorage.setItem('last_selected_user', credentials.email);
+
+      if (tokenBundle.token) {
+        await dispatch(Actions.GetUser, { email: credentials.email });
+      }
+
+      dispatch(Actions.setToLocalStorageUser);
     },
     async [Actions.GetUser](
       { commit, state, dispatch },
       { email, providedToken = null },
     ): Promise<any> {
       const token = state.session.token || providedToken;
-
       if (!token) {
         if (!providedToken) {
           dispatch(Actions.logout);
@@ -143,7 +172,7 @@ export default createStore({
           if (user) {
             const userState = JSON.parse(JSON.stringify(user));
             userState.id = user._id;
-            commit('setUserData', userState);
+            commit(Mutations.setUserData, userState);
             commit(Mutations.setLoading, false);
           }
         } catch (error: any) {
@@ -153,81 +182,51 @@ export default createStore({
         }
       }
     },
-    async [Actions.logout]({ commit, dispatch, state }): Promise<void> {
-      commit(Mutations.setTokenBundle);
-      commit(Mutations.setUserData);
+    async [Actions.reqRefreshToken]({ commit, state, dispatch }) {
+      const { session: { token, refreshToken } } = state;
 
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('last_selected_user');
-
-      dispatch(Actions.waitTokenExpiration);
-    },
-    async [Actions.reqRefreshToken](
-      { commit, dispatch },
-      {
-        email,
-        token,
-        refreshToken,
-        forceUpdate,
-      }: TokenBundle & { email: string, forceUpdate: boolean },
-    ): Promise<void> {
       if (token && refreshToken) {
         try {
-          const tokenBundle = await AuthApi.refreshToken(refreshToken);
+          const tokenBundle = await AuthApi.refreshToken(token);
+          const newTokenBundle = parseTokenBundle(tokenBundle);
 
-          if (forceUpdate) {
-            await dispatch(Actions.GetUser, tokenBundle.token);
-          } else {
-            dispatch(Actions.GetUser, tokenBundle.token);
-          }
-
-          commit(Mutations.setTokenBundle, tokenBundle);
+          commit(Mutations.setTokenBundle, newTokenBundle);
+          dispatch(Actions.setToLocalStorage);
           dispatch(Actions.waitTokenExpiration);
         } catch (e) {
           console.error(e);
-          dispatch(Actions.logout, email);
-          commit(Mutations.setLoading, false);
+          commit(Mutations.setTokenBundle);
+          dispatch(Actions.clearLocalStorage);
         }
       } else {
-        dispatch(Actions.logout);
-        commit(Mutations.setLoading, false);
+        commit(Mutations.setTokenBundle);
       }
     },
-    async [Actions.waitTokenExpiration]({ state, commit, dispatch }): Promise<void> {
-      const { expDate, refreshTimerId } = state.session;
-      const { session, user } = state;
+    async [Actions.waitTokenExpiration]({ state, commit, dispatch }) {
+      const { session: { expDate, refreshTimerId } } = state;
 
       if (refreshTimerId !== null) {
-        clearTimeout(refreshTimerId);
-        commit(Mutations.setRefreshTimerId);
+        clearInterval(refreshTimerId);
+        commit(Mutations.setRefreshTimerId, null);
       }
 
       if (expDate) {
-        const diff = calcTimeDiff(expDate);
+        const curDate = +new Date();
+        const endDate = +new Date(expDate);
+        const diff = endDate - curDate;
 
         if (diff > 0) {
-          const timerId = setTimeout(
-            () => {
-              dispatch(Actions.reqRefreshToken, {
-                email: user.email,
-                token: session.token,
-                refreshToken: session.refreshToken,
-                forceUpdate: false,
-              });
-            },
-            diff,
-          );
+          const timerId = setTimeout(() => dispatch(Actions.reqRefreshToken), diff);
           commit(Mutations.setRefreshTimerId, timerId);
         } else {
-          await dispatch(Actions.reqRefreshToken, {
-            email: user.email,
-            token: session.token,
-            refreshToken: session.refreshToken,
-            forceUpdate: false,
-          });
+          await dispatch(Actions.reqRefreshToken);
         }
       }
+    },
+    async [Actions.logout]({ commit, dispatch }) {
+      commit(Mutations.setTokenBundle);
+      dispatch(Actions.clearLocalStorage);
+      dispatch(Actions.waitTokenExpiration);
     },
   },
   modules: {

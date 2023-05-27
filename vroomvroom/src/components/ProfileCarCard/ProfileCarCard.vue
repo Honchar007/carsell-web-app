@@ -1,28 +1,30 @@
+<!-- eslint-disable vuejs-accessibility/click-events-have-key-events -->
 <template>
   <router-link
     class="car-link"
-    :to="linkPath as any"
+    :to="`/car-page/${linkPath}`"
   >
-    <div class="card-wrapper">
+    <div class="card-wrapper" @click="openCarPage">
       <div class="card-main">
         <div class="car-image">
-          <img :src="require(`@/assets/${imageCar}`)" :alt="brandCar">
+          <img v-if="imageCar != ''" :src="imageCar" :alt="brand">
+          <img v-else :src="require(`@/assets/car-default.jpg`)" :alt="brand">
         </div>
         <div class="car-data">
           <div class="double-info">
             <div>
-              Марка: {{ brandCar }}
+              Марка: {{ brand }}
             </div>
             <div>
-              Модель: {{ modelCar }}
+              Модель: {{ model }}
             </div>
           </div>
-          <div class="double-info">
+          <div class="double-info additional-info">
             <div>Об'єм: {{ volume }}</div>
             <div>КПП: {{ transmission }}</div>
           </div>
-          <div>Рік випуску: {{ yearCar }}</div>
-          <div>Пробіг: {{ odometrCar }} тис. км</div>
+          <div>Рік випуску: {{ year }}</div>
+          <div class="additional-info">Пробіг: {{ odometr }} тис. км</div>
           <div class="car-price">Ціна: {{ price }}</div>
         </div>
       </div>
@@ -34,6 +36,7 @@
 </template>
 <script lang="ts">
 import { computed, defineComponent } from 'vue';
+import { useRouter } from 'vue-router';
 
 // components
 
@@ -49,12 +52,12 @@ export default defineComponent({
       default: '',
       required: true,
     },
-    modelCar: {
+    model: {
       type: String,
       default: '',
       required: true,
     },
-    brandCar: {
+    brand: {
       type: String,
       default: '',
       required: true,
@@ -74,17 +77,17 @@ export default defineComponent({
       default: '',
       required: true,
     },
-    descriptionCar: {
+    description: {
       type: String,
       default: '',
       required: true,
     },
-    yearCar: {
+    year: {
       type: Number,
       default: 2000,
       required: true,
     },
-    odometrCar: {
+    odometr: {
       type: Number,
       default: 100,
       required: true,
@@ -93,9 +96,15 @@ export default defineComponent({
   components: {
   },
   setup(props) {
-    const descriptionCut = computed(() => ((props.descriptionCar.length > 100)
-      ? props.descriptionCar.substring(0, 100).concat('...') : props.descriptionCar));
+    const router = useRouter();
+
+    const openCarPage = () => {
+      router.push(`/car-page/${props.linkPath}`);
+    };
+    const descriptionCut = computed(() => ((props.description.length > 100)
+      ? props.description.substring(0, 100).concat('...') : props.description));
     return {
+      openCarPage,
       descriptionCut,
     };
   },
@@ -104,6 +113,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import "src/styles/typography";
 @import "src/styles/colors";
+@import "src/styles/mixins";
 
 .car-link {
   text-decoration: none;
@@ -120,13 +130,17 @@ export default defineComponent({
       display: flex;
       flex-direction: row;
       text-decoration: none;
+      width: 100%;
+
+      @include for-xs-sm-width {
+        flex-direction: column;
+      }
 
       .car-image {
-        width: 100%;
         height: 100%;
-        min-width: 20rem;
-        max-width: 30rem;
+        width: 100%;
         border-radius: 2rem;
+        overflow: hidden;
 
         img {
           width: 100%;
@@ -144,11 +158,33 @@ export default defineComponent({
         width: 100%;
         margin-top: 0.5rem;
         margin-left: 0.5rem;
+        @include for-xs-sm-width {
+          margin-left: 0rem;
+        }
 
         .double-info {
           display: flex;
           flex-direction: row;
           justify-content: space-between;
+          width: 100%;
+
+          @include for-xs-width {
+            flex-direction: column;
+          }
+
+          @include for-md-width {
+            flex-direction: column;
+          }
+        }
+        @include for-md-width {
+          .additional-info {
+            display: none;
+          }
+        }
+        @include for-xs-width {
+          .additional-info {
+            display: none;
+          }
         }
 
         div {

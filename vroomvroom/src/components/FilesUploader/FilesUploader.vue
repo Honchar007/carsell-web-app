@@ -1,6 +1,7 @@
+<!-- eslint-disable vuejs-accessibility/click-events-have-key-events -->
 <template>
-  <div>
-    <label for="fileUploader" class="file-label">{{ label }}</label>
+  <div class="main-edit">
+    <!-- <label for="fileUploader" class="file-label">{{ label }}</label>
     <input
       ref="fileUploaderRef"
       id="fileUploader"
@@ -15,19 +16,66 @@
         <span>{{ file.name }}</span>
         <button @click="removeFile(index)">Remove</button>
       </div>
+    </div> -->
+    <div class="car-block-buttons">
+      <input
+        type="file"
+        ref="idFileInput"
+        multiple
+        @change="handleFileChangeUp"
+      >
+      <div class="car-block-btn">
+        <span @click="idFileInput.click()">
+          Choose fIle
+        </span>
+        <div class="car-block-btn-bg"></div>
+      </div>
+    </div>
+    <div v-if="identityDocumentFiles.length > 0" class="car-blocks">
+      <div v-for="(file, index) in identityDocumentFiles" :key="index" class="car-block">
+        <div class="car-block-img">
+          <img :src="getFileUrl(file)" alt="id-file">
+        </div>
+        <div class="info-img">
+          <input
+            type="text"
+            readonly
+            :value="identityDocumentFiles[index].name"
+            placeholder="file name"
+          >
+          <Button @click="removeFile(index)">Remove</Button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import {
+  defineComponent, onMounted, ref, watch,
+} from 'vue';
+
+import CommonApi from '@/api/common.api';
+import getBase64Img from '@/shared/helpers/get-base64-img';
+import Button from '../Button';
 
 export default defineComponent({
   name: 'FilesUploader',
+  components: {
+    Button,
+  },
   props: {
     label: String,
+    modelValue: {
+      required: true,
+    },
   },
-  setup() {
+  emits: ['update:modelValue'],
+  setup(_, { emit }) {
+    const idFileInput = ref<any>([]);
+    const identityDocumentFiles = ref<any>([]);
+    const UploadedFiles = ref<any>([]);
+
     const files = ref<any>([]);
     const imagePreviews = ref<any>([]);
 
@@ -59,30 +107,155 @@ export default defineComponent({
     };
 
     const removeFile = (index: number) => {
-      files.value.splice(index, 1);
+      identityDocumentFiles.value.splice(index, 1);
     };
+
+    const getFileUrl = (file: any) => URL.createObjectURL(file);
+
+    const handleFileChangeUp = async (event: Event) => {
+      const inputElement = event.target as HTMLInputElement;
+      const fileList: File[] = Array.from(inputElement.files!);
+      identityDocumentFiles.value = fileList;
+    };
+
+    onMounted(async () => {
+      UploadedFiles.value = await CommonApi.getImages('21', 'car-default.jpg,profile-default.jpg', 'asd');
+      // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
+    });
+
+    watch(identityDocumentFiles, (newValue) => {
+      emit('update:modelValue', newValue);
+      console.log(newValue);
+    });
 
     return {
       files,
       imagePreviews,
       handleFileChange,
       removeFile,
+      idFileInput,
+      identityDocumentFiles,
+      UploadedFiles,
+      getFileUrl,
+      handleFileChangeUp,
+      getBase64Img,
     };
   },
 });
 </script>
 
-<style>
-.file-label {
-  cursor: pointer;
-  /* Add your styling for the file label */
+<style lang="scss">
+@import "src/styles/typography";
+@import "src/styles/colors";
+
+.main-edit {
+  margin: 1rem;
+
+  .car-save-btn {
+    cursor: pointer;
+    margin-top: 2rem;
+  }
 }
 
-.file-preview {
-  /* Add your styling for the file preview */
-}
+.car-block-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
 
-.file-item {
-  /* Add your styling for each file item */
+  input[type='file'] {
+    display: none;
+  }
+  .car-block-btn {
+    display: flex;
+    cursor: pointer;
+    span {
+      @include typo-headline-3;
+
+      padding: 17.5px 75.5px;
+      background: #29ABE2;
+      border-radius: 10px;
+      color: #FFFFFF;
+      position: relative;
+      z-index: 2;
+      @media (max-width: 911px) {
+        padding: 7.5px 0;
+        width: 170px;
+        text-align: center;
+        font-size: 16px;
+        line-height: 138%;
+      }
+    }
+    .car-block-btn-bg {
+      position: absolute;
+      width: 211px;
+      height: 100%;
+      top: 50%;
+      transform: translateX(-50%);
+      left: 50%;
+      background: rgba(95, 122, 126, 0.22);
+      filter: blur(54px);
+      border-radius: 10px;
+      pointer-events: none;
+    }
+  }
+  .car-block-img-input {
+    display: flex;
+    margin-right: auto;
+    margin-left: 16px;
+    width: 100%;
+    max-width: 250px;
+    @media (max-width: 911px) {
+      margin: 15px 0;
+      max-width: 170px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid #29ABE2;
+      border-radius: 10px;
+      padding: 17px;
+      font-family: Open Sans, sans-serif;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 17px;
+      line-height: 26px;
+      color: #102941;
+    }
+  }
+}
+.car-blocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-row-gap: 1rem;
+  grid-column-gap: 1rem;
+  height: 100%;
+  width: 100%;
+
+  .car-block {
+    height: 100%;
+    .car-block-img {
+      height: 80%;
+      margin: 0 auto;
+      margin-bottom: 1rem;
+      img {
+        width: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .info-img {
+      display: flex;
+
+      input {
+        @include typo-headline-3;
+
+        width: 100%;
+        border: 1px solid #29ABE2;
+        border-radius: 10px;
+        color: #102941;
+      }
+    }
+  }
 }
 </style>

@@ -80,7 +80,6 @@ export default defineComponent({
 
     // computed
     const isLoading = computed(() => store.state.isLoading);
-    const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     const changeAttempt = () => {
       toggleSignInUp.value = !toggleSignInUp.value;

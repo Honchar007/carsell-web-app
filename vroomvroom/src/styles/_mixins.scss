@@ -50,6 +50,12 @@
   }
 }
 
+@mixin for-sm-md-lg-width {
+  @media (min-width: $sm-breakpoint) and (max-width: ($xl-breakpoint - 1px)) {
+    @content;
+  }
+}
+
 @mixin for-md-lg-width {
   @media (min-width: $md-breakpoint) and (max-width: ($xl-breakpoint - 1px)) {
     @content;

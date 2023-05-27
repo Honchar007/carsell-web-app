@@ -1,9 +1,9 @@
 <template>
-  <MobileHeader
+  <!-- <MobileHeader
     class="mobile"
     :links="links"
     :height="height || 0"
-  />
+  /> -->
   <TabletHeader
     class="desktop"
     :links="links"
@@ -18,13 +18,12 @@ import LinkData from '@/shared/models/link-data';
 
 // components
 import TabletHeader from './TabletHeader';
-import MobileHeader from './MobileHeader';
+// import MobileHeader from './MobileHeader';
 
 export default defineComponent({
   name: 'Header',
   components: {
     TabletHeader,
-    MobileHeader,
   },
   props: {
     links: {
@@ -60,10 +59,6 @@ export default defineComponent({
 
 @include for-xs-width {
   .desktop {
-    display: none;
-  }
-
-  .mobile {
     display: flex;
   }
 }

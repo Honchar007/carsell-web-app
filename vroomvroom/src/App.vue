@@ -2,6 +2,32 @@
   <router-view/>
 </template>
 
+<script lang="ts">
+import { computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { Actions } from './store/props';
+
+export default {
+  name: 'App',
+
+  components: {
+  },
+
+  setup() {
+    const store = useStore();
+
+    const isLoading = computed(() => store.getters.isLoading);
+
+    onMounted(() => {
+      store.dispatch(Actions.updateFromLocalStorage);
+    });
+
+    return {
+      isLoading,
+    };
+  },
+};
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

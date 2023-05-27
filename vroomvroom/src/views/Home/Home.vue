@@ -2,7 +2,7 @@
   <div class="container">
     <div class="card-wrapper">
       <div>
-        <span>Оберіть марку автомобіля: {{ carBrand }} {{ carModel }}</span>
+        <span>Оберіть марку автомобіля: {{ carBrand }} {{ carModel }} Авторизовано {{isAuthenticated}}</span>
       </div>
       <div class="menu-item menu-double">
         <Select
@@ -66,6 +66,7 @@
 
 <script lang="ts">
 import {
+  computed,
   defineComponent,
   ref,
 } from 'vue';
@@ -80,6 +81,7 @@ import Button from '@/components/Button';
 
 // constants
 import Brands from '@/shared/constants/brands';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'Home',
@@ -89,6 +91,8 @@ export default defineComponent({
     Button,
   },
   setup() {
+    const store = useStore();
+
     // refs
     const carBrand = ref<string>('Toyota');
     const carModel = ref<string>('');
@@ -100,6 +104,7 @@ export default defineComponent({
       dropdownOpened.value = !dropdownOpened.value;
     };
     // computed
+    const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     // helpers
 
@@ -117,6 +122,7 @@ export default defineComponent({
       priceTo,
       dropdownOpened,
       openDropdown,
+      isAuthenticated,
     };
   },
 });

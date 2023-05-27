@@ -25,12 +25,19 @@ const Links: LinkData[] = [
     name: 'Експерти',
     path: { name: 'experts' },
   },
-  {
-    icon: svgIconUrl('profile'),
-    name: 'Мій кабінет',
-    path: { name: 'profile' },
-  },
 ];
+
+const LinkAuth: LinkData = {
+  icon: svgIconUrl('profile'),
+  name: 'Мій кабінет',
+  path: { name: 'profile' },
+};
+
+const LinkNotAuth: LinkData = {
+  icon: svgIconUrl('logout'),
+  name: 'Вхід',
+  path: { name: 'signin' },
+};
 
 const OtherLinks: LinkData[] = [
   {
@@ -56,5 +63,5 @@ const OtherLinks: LinkData[] = [
 ];
 
 export { OtherLinks };
-
+export { LinkAuth, LinkNotAuth };
 export default Links;

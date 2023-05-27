@@ -21,13 +21,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 
 // components
 
 // models
 import LinkData from '@/shared/models/link-data';
 import Search from '@/components/Search';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'Header',
@@ -47,8 +48,10 @@ export default defineComponent({
   },
 });
 </script>
+
 <style lang="scss" scoped>
 @import 'src/styles/typography';
+@import 'src/styles/mixins';
 
 header {
   background: $color-background;
@@ -58,6 +61,19 @@ header {
   margin-bottom: 2rem;
   padding: 0 1rem 0 1rem;
   border-radius: 20rem;
+
+  @include for-xs-sm-md-lg-width {
+    flex-direction: column;
+    gap: 1rem;
+
+    .search {
+      margin-top: 1rem;
+    }
+  }
+
+  @include for-xs-sm-width {
+    border-radius: 2rem;
+  }
 
   .search {
     flex-shrink: 1;
@@ -70,6 +86,11 @@ header {
     justify-content: space-around;
     width: 70%;
     margin-left: 0.5rem;
+
+    @include for-xs-sm-width {
+      flex-direction: column;
+      gap: 1rem;
+    }
     .menu-item {
       display: flex;
       flex-direction: row;
@@ -80,6 +101,10 @@ header {
       transition: filter 0.3s ease-in-out;
       cursor: pointer;
       text-decoration: none;
+
+      @include for-xs-sm-width {
+        justify-content: center;
+      }
 
       &.active, &:hover {
         filter: brightness(2);
