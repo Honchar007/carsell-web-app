@@ -15,6 +15,9 @@
           <span>{{ link.name }}</span>
         </router-link>
       </template>
+      <Button v-if="isAuthenticated" @click="logout" class="menu-item btn-logout">
+        Вихід
+      </Button>
     </div>
   </header>
 </template>
@@ -27,10 +30,14 @@ import { computed, defineComponent } from 'vue';
 // models
 import LinkData from '@/shared/models/link-data';
 import { useStore } from 'vuex';
+import Button from '@/components/Button';
+import { Actions } from '@/store/props';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'Header',
   components: {
+    Button,
   },
   props: {
     links: {
@@ -40,7 +47,22 @@ export default defineComponent({
   },
   emits: [],
   setup() {
+    const store = useStore();
+    const router = useRouter();
+    // computed
+    const isAuthenticated = computed(() => store.getters.isAuthenticated);
+
+    // helpers
+    const logout = () => {
+      console.log('logout');
+      store.dispatch(Actions.logout).then(() => {
+        router.push('/home');
+      });
+    };
+
     return {
+      isAuthenticated,
+      logout,
     };
   },
 });
@@ -75,7 +97,20 @@ header {
   .menu {
     display: flex;
     justify-content: space-around;
+    align-items: center;
     width: 100%;
+
+    .btn-logout {
+      height: 80%;
+      width: 100%;
+      max-width: 8rem;
+      max-height: 2rem;
+
+      @include for-xs-sm-width {
+        max-width: 80%;
+        margin-bottom: 1rem;
+      }
+    }
 
     @include for-xs-sm-width {
       flex-direction: column;
@@ -85,7 +120,7 @@ header {
       display: flex;
       flex-direction: row;
       align-items: center;
-      margin-right: 2rem;
+      margin-right: 1rem;
       padding: 1rem 0;
       filter: brightness(1);
       transition: filter 0.3s ease-in-out;

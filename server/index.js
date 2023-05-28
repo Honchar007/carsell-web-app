@@ -560,6 +560,23 @@ const start = async () => {
     }
   );
 
+  fastify.get(
+    '/user-phone/:id',
+    (req, reply) => {
+      const id = req.params.id;
+
+      UserModel.findOne({ _id: id })
+        .lean()
+        .select('phone')
+        .then((result) => {
+          reply.send(result.phone);
+        })
+        .catch((err) => {
+          return err;
+        });
+    }
+  );
+
   fastify.post(
     '/login',
     {

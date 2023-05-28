@@ -74,6 +74,13 @@ const CommonApi = {
     return res.data;
   },
 
+  async getUserPhone(id: string) {
+    const res = await http.get(
+      `http://127.0.0.1:3000/user-phone/${id}`,
+    );
+    return res.data;
+  },
+
   async getCarInfo(token: string, id: string) {
     const res = await http.get(
       `http://127.0.0.1:3000/car/${id}`,

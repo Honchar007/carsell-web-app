@@ -38,6 +38,9 @@ export default defineComponent({
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     const user = computed(() => store.getters.getUser);
+
+    // helpers
+
     return {
       user,
     };

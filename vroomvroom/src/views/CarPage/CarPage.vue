@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="car-menu">
-      <Button @click="handleShowTel"> {{showTel ? curUser.phone : 'Дізнатися контакти'}}</Button>
+      <Button @click="handleShowTel"> {{showTel ? phone : 'Дізнатися контакти'}}</Button>
       <Button v-if="curUserId == carOwnerId" @click="$router.push(`/car-edit/${$route.params.id}`)">Редагувати</Button>
       <Button v-if="curUserId != carOwnerId">Замовити перевірку</Button>
       <Button v-if="curUserId == carOwnerId" @click="deleteCar" class="delete" outlined>Видалити</Button>
@@ -80,6 +80,7 @@ export default defineComponent({
 
     const UploadedFiles = ref<any>([]);
     const id = ref<string>('');
+    const phone = ref<string>('');
     const carOwnerId = ref<string>('');
     const info = ref<string>('');
     const priceTemp = ref<number>(car.price);
@@ -120,6 +121,7 @@ export default defineComponent({
       if (imgPaths.length > 0) {
         UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd');
       }
+      phone.value = await CommonApi.getUserPhone(data.ownerId);
       // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
     });
 
@@ -134,6 +136,7 @@ export default defineComponent({
       odometrTemp,
       transmissionTemp,
       descriptionTemp,
+      phone,
       carImages,
       UploadedFiles,
       getBase64Img,
