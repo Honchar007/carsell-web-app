@@ -20,11 +20,6 @@ const Links: LinkData[] = [
     name: 'Про нас',
     path: { name: 'aboutus' },
   },
-  {
-    icon: svgIconUrl('gear'),
-    name: 'Експерти',
-    path: { name: 'experts' },
-  },
 ];
 
 const LinkAuth: LinkData = {
@@ -33,10 +28,22 @@ const LinkAuth: LinkData = {
   path: { name: 'profile' },
 };
 
+const LinkExpert: LinkData = {
+  icon: svgIconUrl('gear'),
+  name: 'Експерти',
+  path: { name: 'experts' },
+};
+
 const LinkNotAuth: LinkData = {
   icon: svgIconUrl('logout'),
   name: 'Вхід',
   path: { name: 'signin' },
+};
+
+const LinkIsAvtovukyp: LinkData = {
+  icon: svgIconUrl('coin'),
+  name: 'Автовикуп',
+  path: { name: 'avtovukyp' },
 };
 
 const OtherLinks: LinkData[] = [
@@ -63,5 +70,7 @@ const OtherLinks: LinkData[] = [
 ];
 
 export { OtherLinks };
-export { LinkAuth, LinkNotAuth };
+export {
+  LinkAuth, LinkNotAuth, LinkExpert, LinkIsAvtovukyp,
+};
 export default Links;

@@ -14,47 +14,74 @@
       />
     </div>
     <Button class="form-item signin-button" @click="login(email,password)">Sign in</Button>
-    <Button class="form-item signin-button" outlined @click="changeAttempt">Sign up? {{toggleSignInUp}}</Button>
-    <p>{{isLoading}}</p>
+    <Button class="form-item signin-button" outlined @click="changeAttempt">Sign up?</Button>
   </div>
   <div v-else class="form">
     <h1 class="form-item">Sign up</h1>
+    <AvatarUploader v-model="image" label="AVATAR UPLOAD"/>
     <div class="form-item">
-      <div class="form-text">Login</div>
+      <div class="form-text">Ім'я</div>
+      <Input class="form-input"
+        v-model="firstName"
+        placeholder="Андрій"
+      />
+    </div>
+    <div class="form-item">
+      <div class="form-text">Прізвище</div>
+      <Input class="form-input"
+        v-model="secondName"
+        placeholder="Гончар"
+      />
+    </div>
+    <div class="form-item">
+      <div class="form-text">Пароль</div>
+      <Input class="form-input"
+        type="password"
+        v-model="password"
+        placeholder="super secret"
+      />
+    </div>
+    <div class="form-item">
+      <div class="form-text">Повторити пароль</div>
+      <Input class="form-input"
+        v-model="confirmPassword"
+        placeholder="super secret"
+        :error="password != confirmPassword && confirmPassword != '' ? 'Паролі не збігаються' : ''"
+      />
+    </div>
+    <div class="form-item">
+      <div class="form-text">Email</div>
       <Input class="form-input"
         v-model="email"
+        placeholder="example@mail.com"
       />
     </div>
     <div class="form-item">
-      <div class="form-text">Confirm login</div>
+      <div class="form-text">Номер телефону</div>
       <Input class="form-input"
-        v-model="email"
+        v-model="phone"
+        placeholder="+380777777777"
       />
     </div>
-    <div class="form-item">
-      <div class="form-text">Password</div>
-      <Input class="form-input"
-        v-model="password"
-      />
-    </div>
-    <div class="form-item">
-      <div class="form-text">Confirm password</div>
-      <Input class="form-input"
-        v-model="password"
-      />
-    </div>
-    <div class="form-item">
-      <div class="form-text">Name</div>
-      <Input class="form-input"
-        v-model="password"
-      />
-    </div>
-    <Button class="form-item signin-button">Sign up</Button>
+    <Button
+      class="form-item signin-button"
+      @click="signUp"
+      :disabled="!(firstName
+      && secondName
+      && confirmPassword
+      && phone
+      && email
+      && password
+      && image) || password != confirmPassword"
+    >Sign up</Button>
     <Button class="form-item signin-button" outlined @click="changeAttempt">Are you already sign up? Sign in!</Button>
+    <!-- <div v-if="!validation()">Please fill in all fields.</div> -->
   </div>
 </template>
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
+import {
+  computed, defineComponent, reactive, ref,
+} from 'vue';
 import { useRouter } from 'vue-router';
 
 // components
@@ -63,23 +90,49 @@ import Button from '@/components/Button';
 import { useStore } from 'vuex';
 
 import { Actions } from '@/store/props';
+import AvatarUploader from '@/components/AvatarUploader';
+import CommonApi from '@/api/common.api';
+import AuthApi from '@/api/auth.api';
 
 export default defineComponent({
   name: 'SignIn',
   components: {
     Input,
     Button,
+    AvatarUploader,
   },
   setup() {
     const store = useStore();
     const router = useRouter();
 
+    const firstName = ref<string>('');
+    const secondName = ref<string>('');
+    const confirmPassword = ref<string>('');
+    const phone = ref<string>('');
     const email = ref<string>('');
     const password = ref<string>('');
+    const image = ref<any>(null);
+
     const toggleSignInUp = ref<boolean>(true);
 
     // computed
     const isLoading = computed(() => store.state.isLoading);
+
+    // helpers
+    const validation = () => {
+      if (
+        firstName.value
+        && secondName.value
+        && confirmPassword.value
+        && phone.value
+        && email.value
+        && password.value
+        && image.value
+      ) {
+        return true; // All fields are filled
+      }
+      return false; // At least one field is empty
+    };
 
     const changeAttempt = () => {
       toggleSignInUp.value = !toggleSignInUp.value;
@@ -87,8 +140,6 @@ export default defineComponent({
 
     // async helpers
     async function login(email: string, password: string): Promise<void> {
-      console.log(email);
-      console.log(password);
       await store.dispatch(Actions.login, { email, password })
         .then(
           () => {
@@ -104,19 +155,52 @@ export default defineComponent({
         });
     }
 
+    async function signUp(): Promise<void> {
+      const user = {
+        avatarPath: '',
+        firstName: firstName.value,
+        secondName: secondName.value,
+        email: email.value,
+        phone: phone.value,
+        isAvtovukyp: false,
+        isExpert: false,
+        password: password.value,
+      };
+      await AuthApi.RegUser(user)
+        .then(
+          () => {
+            toggleSignInUp.value = true;
+          },
+        )
+        .catch((error: any) => {
+          console.error((error.response
+              && error.response.data
+              && error.response.data.message)
+            || error.message
+            || error.toString());
+        });
+    }
+
     return {
+      firstName,
+      secondName,
+      confirmPassword,
+      phone,
       email,
       password,
+      image,
       toggleSignInUp,
       isLoading,
       changeAttempt,
       login,
+      signUp,
     };
   },
 });
 </script>
 <style lang="scss" scoped>
 @import 'src/styles/typography';
+@import 'src/styles/mixins';
   .form {
     display: flex;
     flex-direction: column;
@@ -131,12 +215,34 @@ export default defineComponent({
 
       .form-text {
         @include typo-headline-3;
-        width: 30%;
+        text-align: start;
+
+        width: 35%;
+
+        @include for-xs-width {
+          text-align: center;
+          width: 100%;
+        }
+      }
+
+      .form-input {
+        @include for-xs-width {
+          width: 100%;
+        }
       }
     }
 
     .form-item {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
       margin-top: 1rem;
+
+      @include for-xs-width {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
 
       &:last-child {
         margin-bottom: 1rem;

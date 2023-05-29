@@ -62,7 +62,7 @@ import TextArea from '@/components/TextArea';
 import FilesUploader from '@/components/FilesUploader';
 import CommonApi from '@/api/common.api';
 import getBase64Img from '@/shared/helpers/get-base64-img';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 // constants
 const car = {
@@ -90,6 +90,7 @@ export default defineComponent({
   },
   setup() {
     const route = useRoute();
+    const router = useRouter();
 
     const UploadedFiles = ref<any>([]);
     const id = ref<string>('');
@@ -116,6 +117,7 @@ export default defineComponent({
       };
       await CommonApi.UpdateCar('646bde2c9cf75853200b1ee6', car, route.params.id as string);
       if (carImages.value) CommonApi.uploadImages('646bde2c9cf75853200b1ee6', { ...data }, '646bde2c9cf75853200b1ee6');
+      router.back();
     };
 
     onMounted(async () => {

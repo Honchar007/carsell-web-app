@@ -10,6 +10,7 @@ import SignIn from '@/views/SignIn';
 import Profile from '@/views/Profile';
 import CarPage from '@/views/CarPage';
 import CarEdit from '@/views/CarEdit';
+import Avtovukyp from '@/views/Avtovukyp';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -52,6 +53,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'aboutus',
         component: AboutUs,
         meta: { title: ['About us'] },
+      },
+      {
+        path: '/avtovukyp',
+        name: 'avtovukyp',
+        component: Avtovukyp,
+        meta: { title: ['Avtovukyp'] },
       },
       {
         path: '/sign-in',

@@ -17,6 +17,7 @@
       />
     </div>
     <div v-else>
+      <CarCreate />
       <!-- <ProfileCarCard
       :image-car="car.image"
       :brand-car="car.brand"
@@ -57,6 +58,7 @@ import CommonApi from '@/api/common.api';
 
 // helpers
 import getBase64Img from '@/shared/helpers/get-base64-img';
+import CarCreate from '@/components/CarCreate';
 
 /* const car = {
   image: 'car-default.jpg',
@@ -81,7 +83,7 @@ const options: OptionCase<any>[] = [
   },
   {
     value: 1,
-    label: 'Ваші обрані авто',
+    label: 'Додати авто',
   }];
 
 export default defineComponent({
@@ -89,6 +91,7 @@ export default defineComponent({
   components: {
     Tabs,
     ProfileCarCard,
+    CarCreate,
   },
   setup() {
     const store = useStore();
@@ -98,6 +101,7 @@ export default defineComponent({
 
     const token = computed(() => store.getters.getToken);
     const id = computed(() => store.getters.getId);
+    const user = computed(() => store.getters.user);
     // async helpers
 
     const fetchCarImages = async (car: any) => {

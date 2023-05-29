@@ -68,7 +68,7 @@ const start = async () => {
 
   fastify.register(require('@fastify/cors'), {
     origin: ['http://172.20.10.2:8080', 'http://192.168.1.2:8080', 'http://192.168.1.15:8080', 'http://localhost:8080',
-    'http://127.0.0.1:8080', 'http://192.168.1.3:8080'],
+    'http://127.0.0.1:8080', 'http://192.168.1.3:8080', 'http://192.168.1.4:8080'],
   });
 
   fastify.register(require('@fastify/static'), {
@@ -106,18 +106,7 @@ const start = async () => {
     },
     (req, reply) => {
       const query = makeFilters(req.query);
-      // const search = req.query.search || '';
-      // const minOdo = req.query.minOdo || 0;
-      // const maxOdo = req.query.maxOdo || 0;
-      // const minPrice = req.query.minPrice || 0;
-      // const maxPrice = req.query.maxPrice || 0;
-      // const minYear = req.query.minYear || 0;
-      // const maxYear = req.query.minYear || new Date().getFullYear();
-      // const fuelParam = req.query.fuel || 'All';
-      // const transmissionParam = req.query.transmission || 'All';
-
-      // const fuel = fuelParam === 'All' ? [...fuelTypes] : fuelParam.split(',');
-      // const transmission = transmissionParam === 'All' ? [...transmissionTypes] : transmissionParam.split(',')
+      query.isAvtovukypSale = false;
 
       CarModel.find(query)
         .lean()
@@ -130,6 +119,27 @@ const start = async () => {
         .catch((error) => {
           reply.send(error);
         });
+    }
+  );
+
+  fastify.get(
+    '/cars-avtovukyp',
+    {
+      schema: getAllCarsSchema,
+    },
+    async (req, reply) => {
+      try {
+        const cars = await CarModel.find({ isAvtovukypSale: true })
+          .lean()
+          .select(
+            'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication fuel'
+          );
+
+        reply.send(cars);
+      } catch (error) {
+        console.error(error);
+        reply.status(500).send({ message: 'Internal Server Error' });
+      }
     }
   );
 
@@ -196,14 +206,13 @@ const start = async () => {
   );
 
   fastify.post(
-    '/car',
+    '/create-car',
     {
       schema: createCarSchema,
     },
     (req, reply) => {
       const {
         ownerId,
-        carPicsPath,
         brand,
         model,
         price,
@@ -212,33 +221,33 @@ const start = async () => {
         color,
         year,
         town,
+        fuel,
         odometr,
         vincode,
         plates,
         description,
-        comments,
         isAvtovukypSale,
-        datePublication,
       } = req.body;
 
       const car = new CarModel({
         ownerId,
-        carPicsPath,
+        carPicsPath: [],
         brand,
         model,
-        price,
-        volume,
+        price: parseInt(price),
+        volume: Number(parseFloat(volume).toFixed(1)),
         transmission,
         color,
-        year,
+        year: parseInt(year),
         town,
-        odometr,
+        fuel,
+        odometr: parseInt(odometr),
         vincode,
         plates,
         description,
-        comments,
+        comments: [],
         isAvtovukypSale,
-        datePublication,
+        datePublication: new Date(),
       });
 
       car
@@ -250,6 +259,32 @@ const start = async () => {
           return console.error(error);
         });
       reply.code(201).send(car);
+    }
+  );
+
+  fastify.put(
+    '/car-comment/:id',
+    async (req, reply) => {
+      const id = req.params.id;
+      console.log(req.body);
+      const comment = req.body.comment;
+
+      try {
+        const car = await CarModel.findOneAndUpdate(
+          { _id: id },
+          { $push: { comments: comment } }, // Use $push to add the comment to the comments array
+          { new: true }
+        );
+
+        if (!car) {
+          return reply.status(404).send({ message: 'Car not found' });
+        }
+
+        return reply.send(car);
+      } catch (error) {
+        console.error(error);
+        return reply.status(500).send({ message: 'Internal Server Error' });
+      }
     }
   );
 
@@ -408,7 +443,6 @@ const start = async () => {
         firstName,
         phone,
         email,
-        checker,
       } = req.body;
 
       try {
@@ -421,7 +455,11 @@ const start = async () => {
           firstName,
           phone,
           email,
-          checker,
+          checker: {
+            checkerId: '',
+            name: '',
+            phone: '',
+          },
         });
 
         await carCheck.save();
@@ -705,13 +743,14 @@ const start = async () => {
       }
     }
     if(names.length > 0) {
-      await CarModel.findOneAndUpdate(
+      const car  = await CarModel.findOneAndUpdate(
         { _id: id },
         {
           carPicsPath: names,
         },
         { new: true }
       );
+      console.log(car);
     }
     reply.send()
   })

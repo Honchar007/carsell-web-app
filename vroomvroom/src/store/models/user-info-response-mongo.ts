@@ -3,7 +3,7 @@ interface UserInfoResponseMongo {
   avatarPath: string | null,
   firstName: string | null,
   secondName: string | null,
-  dateRegistration: Date | null,
+  dateRegistration?: Date | null,
   email: string | null,
   phone: string | null,
   isAvtovukyp: boolean,

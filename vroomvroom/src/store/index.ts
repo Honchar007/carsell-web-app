@@ -38,6 +38,7 @@ export default createStore({
   },
   getters: {
     getUser: (state) => state.user,
+    getEmail: (state) => state.user.email,
     getId: (state) => state.user.id,
     getToken: (state) => state.session.token,
     isAuthenticated: (state) => {
@@ -47,7 +48,6 @@ export default createStore({
       if (token !== null && refreshToken !== null) {
         return true;
       }
-
       return false;
     },
     isLoading: (state) => !!state.isLoading,
@@ -121,8 +121,10 @@ export default createStore({
       const tokenBundle = await dispatch(Actions.getFromLocalStorage);
       const email = await dispatch(Actions.getFromLocalStorageUser);
       commit(Mutations.setTokenBundle, tokenBundle);
-      await dispatch(Actions.GetUser, { email, providedToken: tokenBundle.token });
-      await dispatch(Actions.waitTokenExpiration);
+      if (email && tokenBundle && tokenBundle.token) {
+        await dispatch(Actions.GetUser, { email, providedToken: tokenBundle.token });
+        await dispatch(Actions.waitTokenExpiration);
+      }
     },
     async [Actions.refreshTokens]({ commit, state }): Promise<void> {
       if (state.session.refreshToken) {

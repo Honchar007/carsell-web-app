@@ -67,14 +67,6 @@ const createCarCheckSchema = {
       firstName: { type: 'string', description: 'First name' },
       phone: { type: 'string', description: 'Phone number' },
       email: { type: 'string', description: 'Email address' },
-      checker: {
-        type: 'object',
-        properties: {
-          checkerId: { type: 'string', description: 'Checker ID' },
-          name: { type: 'string', description: 'Checker name' },
-          phone: { type: 'string', description: 'Checker phone number' },
-        },
-      },
     },
     required: [
       'brand',

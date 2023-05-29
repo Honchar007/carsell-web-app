@@ -25,7 +25,13 @@ const CarSchema = {
     description: { type: 'string', description: 'Car description' },
     comments: {
       type: 'array',
-      items: { type: 'string' },
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Owner of comment' },
+          text: { type: 'string', description: 'Comment' },
+        },
+      },
       description: 'Car comments',
     },
     isAvtovukypSale: {
@@ -87,11 +93,6 @@ const createCarSchema = {
     type: 'object',
     properties: {
       ownerId: { type: 'string', description: 'Owner ID' },
-      carPicsPath: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Car picture paths',
-      },
       brand: { type: 'string', description: 'Car brand' },
       model: { type: 'string', description: 'Car model' },
       price: { type: 'number', description: 'Car price' },
@@ -103,20 +104,15 @@ const createCarSchema = {
       odometr: { type: 'number', description: 'Car odometer reading' },
       vincode: { type: 'string', description: 'Car VIN code' },
       plates: { type: 'string', description: 'Car license plates' },
+      fuel: { type: 'string', description: 'Car type fuel' },
       description: { type: 'string', description: 'Car description' },
       isAvtovukypSale: {
         type: 'boolean',
         description: 'Indicates if the car is for Avtovukyp sale',
       },
-      datePublication: {
-        type: 'string',
-        format: 'date-time',
-        description: 'Publication date of the car',
-      },
     },
     required: [
       'ownerId',
-      'carPicsPath',
       'brand',
       'model',
       'price',
@@ -127,10 +123,10 @@ const createCarSchema = {
       'town',
       'odometr',
       'vincode',
+      'fuel',
       'plates',
       'description',
       'isAvtovukypSale',
-      'datePublication',
     ],
   },
   response: {

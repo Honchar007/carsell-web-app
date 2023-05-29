@@ -3,7 +3,7 @@
     <div class="container">
       <div class="content-wrapper">
         <Header
-          :links="LinksHeader"
+          :links="LinksHeaderAvtovukyp"
           :height="height || 0"
         />
         <div class="content" :style="{ height: disableScroll ? `${contentHeight}px` : undefined }">
@@ -40,7 +40,9 @@ import svgIconUrl from '@/shared/helpers/svg-icon-url';
 import Header from '@/layouts/Header';
 
 // constants
-import Links, { LinkAuth, LinkNotAuth } from '@/shared/constants/links';
+import Links, {
+  LinkAuth, LinkExpert, LinkNotAuth, LinkIsAvtovukyp,
+} from '@/shared/constants/links';
 import { useStore } from 'vuex';
 
 const DESKTOP_PADDING = 32;
@@ -79,7 +81,16 @@ export default defineComponent({
 
     // computed
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
+    const isExpert = computed(() => store.getters.isExpert);
+    const isAvtovukypMan = computed(() => store.getters.isAvtovukyp);
+
     const LinksHeader = computed(() => (isAuthenticated.value ? [...Links, LinkAuth] : [...Links, LinkNotAuth]));
+    const LinksHeaderExpert = computed(() => (isExpert.value ? [...LinksHeader.value, LinkExpert] : [...LinksHeader.value]));
+    const LinksHeaderAvtovukyp = computed(() => (isAvtovukypMan.value
+      ? [...LinksHeaderExpert.value, LinkIsAvtovukyp]
+      : [...LinksHeaderExpert.value]
+    ));
+
     const contentHeight = computed(() => {
       const h = height.value;
       const w = width.value;
@@ -126,6 +137,8 @@ export default defineComponent({
       allLinks,
       LinksHeader,
       isAuthenticated,
+      LinksHeaderExpert,
+      LinksHeaderAvtovukyp,
     };
   },
 });

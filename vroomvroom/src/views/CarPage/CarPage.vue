@@ -27,11 +27,37 @@
           <span class="car-info-headline">Опис:</span> {{ descriptionTemp }}
         </div>
       </div>
+      <div class="car-comments" v-if="isNoComOwnCar">
+        <template v-if="comments.length > 0">
+          <div class="comment-item" v-for="(item, index) in comments" :key="index">
+            <div>
+              <span class="car-info-headline">{{item.name}}:</span>
+            </div>
+            <div class="comment-text">
+              {{ item.text }}
+            </div>
+          </div>
+          <div v-if="curUserId != carOwnerId" class="car-description-wrapper">
+            <span class="car-info-headline">Ваш Коментар:</span>
+            <textarea class="text-area" v-model="curUserComment"/>
+            <Button class="btn-comment" @click="comment">Відправити</Button>
+          </div>
+        </template>
+        <div class="no-comments" v-else-if="curUserId != carOwnerId">
+          <div v-if="curUserId != carOwnerId" class="car-description-wrapper">
+            <div>
+              <span class="car-info-headline">Ваш Коментар:</span>
+            </div>
+              <textarea class="text-area" v-model="curUserComment"/>
+              <Button class="btn-comment" @click="comment">Відправити</Button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="car-menu">
       <Button @click="handleShowTel"> {{showTel ? phone : 'Дізнатися контакти'}}</Button>
       <Button v-if="curUserId == carOwnerId" @click="$router.push(`/car-edit/${$route.params.id}`)">Редагувати</Button>
-      <Button v-if="curUserId != carOwnerId">Замовити перевірку</Button>
+      <Button v-if="curUserId != carOwnerId && isAuthenticated" @click="makeCarCheck">Замовити перевірку</Button>
       <Button v-if="curUserId == carOwnerId" @click="deleteCar" class="delete" outlined>Видалити</Button>
     </div>
   </div>
@@ -48,6 +74,7 @@ import getBase64Img from '@/shared/helpers/get-base64-img';
 import { useRoute, useRouter } from 'vue-router';
 import Carousel from '@/components/Carousel';
 import { useStore } from 'vuex';
+import AuthApi from '@/api/auth.api';
 
 // components
 
@@ -78,11 +105,15 @@ export default defineComponent({
     const route = useRoute();
     const router = useRouter();
 
+    // refs
     const UploadedFiles = ref<any>([]);
     const id = ref<string>('');
     const phone = ref<string>('');
     const carOwnerId = ref<string>('');
     const info = ref<string>('');
+    const brand = ref<string>('');
+    const model = ref<string>('');
+    const town = ref<string>('');
     const priceTemp = ref<number>(car.price);
     const volumeTemp = ref<number>(car.volume);
     const colorTemp = ref<string>(car.color);
@@ -92,19 +123,48 @@ export default defineComponent({
     const descriptionTemp = ref<string>(car.description);
     const carImages = ref<any>([]);
     const showTel = ref<boolean>(false);
+    const comments = ref<Array<any>>([]);
+    const curUserComment = ref<string>('');
+    const isNoComOwnCar = ref<boolean>(false);
 
-    const handleShowTel = () => {
-      showTel.value = !showTel.value;
-    };
-
-    const deleteCar = async () => {
-      await CommonApi.DeleteCar('21', route.params.id as string).then(() => router.back());
-    };
-
+    // computed
     const curUserId = computed(() => store.getters.getId);
     const curUser = computed(() => store.getters.getUser);
 
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
+
+    // helpers
+    const handleShowTel = () => {
+      showTel.value = !showTel.value;
+    };
+    // async helpers
+    const deleteCar = async () => {
+      await CommonApi.DeleteCar('21', route.params.id as string).then(() => router.back());
+    };
+
+    const makeCarCheck = async () => {
+      const wanter = await AuthApi.getUserInfo('', curUser.value.email);
+      console.log(wanter._id);
+      const carCheck = {
+        model: model.value,
+        brand: brand.value,
+        town: town.value,
+        link: route.params.id as string,
+        wantToCheckId: wanter._id,
+        firstName: wanter.firstName,
+        email: wanter.email,
+        phone: wanter.phone,
+      };
+      await CommonApi.CreateCarCheck('21', carCheck);
+    };
+
+    const comment = async () => {
+      await CommonApi.AddCarComment('token', {
+        name: curUser.value.firstName,
+        text: curUserComment.value,
+      }, route.params.id as string);
+      curUserComment.value = '';
+    };
 
     onMounted(async () => {
       const data = await CommonApi.getCarInfo('21', route.params.id as string);
@@ -114,10 +174,16 @@ export default defineComponent({
       priceTemp.value = data.price;
       volumeTemp.value = data.volume;
       colorTemp.value = data.color;
+      brand.value = data.brand;
+      model.value = data.model;
+      town.value = data.town;
+      comments.value = data.comments;
       yearTemp.value = data.year;
       odometrTemp.value = data.odometr;
       transmissionTemp.value = data.transmission;
       descriptionTemp.value = data.description;
+      isNoComOwnCar.value = !(data.comments.length === 0 && curUserId.value === data.ownerId);
+
       if (imgPaths.length > 0) {
         UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd');
       }
@@ -136,13 +202,18 @@ export default defineComponent({
       odometrTemp,
       transmissionTemp,
       descriptionTemp,
+      comments,
       phone,
+      curUserComment,
       carImages,
       UploadedFiles,
       getBase64Img,
       deleteCar,
+      comment,
+      makeCarCheck,
       curUserId,
       curUser,
+      isNoComOwnCar,
       isAuthenticated,
       showTel,
       handleShowTel,
@@ -218,6 +289,10 @@ export default defineComponent({
       width: 100%;
       margin-top: 1rem;
 
+      @include for-xs-sm-md-width {
+        flex-direction: column;
+      }
+
       .car-info-item {
         padding: 0.5rem;
         border-radius: 1rem;
@@ -229,6 +304,72 @@ export default defineComponent({
     .car-info-headline {
       @include typo-card-body;
       color: $color-viridian-green;
+    }
+    .car-comments {
+      width: 100%;
+      border-radius: 1rem;
+      border: 0.15rem solid $color-secondary-component-background;
+      color: $color-neutrals-6;
+      margin-bottom: 1rem;
+
+      .btn-comment {
+        align-self: center;
+        margin-bottom: 1rem;
+      }
+      .comment-item {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+
+        .comment-text {
+          display: flex;
+          text-align: start;
+          padding: 0.5rem;
+          border-radius: 1rem;
+          border: 0.15rem solid $color-secondary-component-background;
+          color: $color-neutrals-6;
+        }
+      }
+      .no-comments {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .car-description-wrapper {
+        display: flex;
+        flex-direction: column;
+        padding-top: 1rem;
+
+        ::-webkit-scrollbar {
+          // Width of vertical scroll bar
+          width: 2rem;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          border-radius: 2rem;
+          border: 0.5rem solid rgba(0, 0, 0, 0);
+          background: #c2c9d2;
+          background-clip: padding-box;
+        }
+
+        .text-area {
+          @include typo-headline-4;
+          padding: 1rem;
+          margin: 1rem;
+          color: $color-white;
+          background: $color-secondary-background-molecules;
+          border: 2px solid transparent;
+          border-radius: 1.5rem;
+          -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+          -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+          box-sizing: border-box;
+          resize: none;
+          transition: 0.5s ease-in-out all;
+        }
+      }
     }
     .car-description {
       width: 100%;
@@ -254,6 +395,10 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     gap: 1rem;
+
+    @include for-xs-sm-md-width {
+      flex-direction: column;
+    }
 
     .delete {
       border: 2px solid $color-secondary-component-background;
