@@ -10,6 +10,8 @@ const fuelTypes = require('./shared/fuelTypes');
 const transmissionTypes = require('./shared/transmissionTypes');
 
 // models
+const { getCarActionByVinSchema } = require('./fastify-models/car-action');
+
 const {
   generateTokenSchema,
   validateTokenSchema,
@@ -43,6 +45,7 @@ const CarCheckModel = require('./models/car-check');
 const UserModel = require('./models/user');
 const makeFilters = require('./shared/helpers/makeFilters');
 const BrandModel = require('./models/brand-model');
+const CarActionModel = require('./models/car-action-model');
 
 const connectionString = 'mongodb://127.0.0.1:27017/vroomvroom';
 
@@ -93,6 +96,23 @@ const start = async () => {
       await req.jwtVerify();
     } catch (error) {
       reply.send(error);
+    }
+  });
+
+  fastify.get('/car-actions/:vin', { schema: getCarActionByVinSchema }, async (req, reply) => {
+    const VIN = req.params.vin;
+
+    try {
+      const carActions = await CarActionModel.find({ VIN: VIN });
+
+      if (carActions.length === 0) {
+        return reply.send([]);
+      }
+
+      return reply.send(carActions);
+    } catch (error) {
+      console.error(error);
+      return reply.status(500).send({ message: 'Internal Server Error' });
     }
   });
 

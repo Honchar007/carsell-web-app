@@ -53,6 +53,41 @@
           </div>
         </div>
       </div>
+      <div class="car-actions">
+        <div v-if="loadingActions" class="loading">
+          Триває перевірка...
+        </div>
+        <div v-else>
+          <div v-if="actions.length > 0" class="actions">
+            <div class="car-info-headline">Операції з даним авто</div>
+            <div class="car-action-info">
+              <div class="car-official-info">
+                <div>
+                  Марка: {{ actions[0].BRAND }}
+                </div>
+                <div>
+                  Модель: {{ actions[0].MODEL }}
+                </div>
+                <div>
+                  Рік: {{ actions[0].MAKE_YEAR }}
+                </div>
+                <div> Об'єм: {{ actions[0].CAPACITY }} </div>
+                <div> Тип пального: {{ actions[0].FUEL }} </div>
+                <div> Колір: {{ actions[0].COLOR }} </div>
+              </div>
+              <div v-for="(action, index) in actions" :key="index" class="action-item">
+                <div class="car-info-headline">
+                  Операція:
+                </div>
+                <div> {{ action.OPER_NAME }} </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="no-info">
+            Інформацію по даному він коду не знайдено
+          </div>
+        </div>
+      </div>
     </div>
     <div class="car-menu">
       <Button @click="handleShowTel"> {{showTel ? phone : 'Дізнатися контакти'}}</Button>
@@ -75,6 +110,8 @@ import { useRoute, useRouter } from 'vue-router';
 import Carousel from '@/components/Carousel';
 import { useStore } from 'vuex';
 import AuthApi from '@/api/auth.api';
+import CarAction from '@/store/models/car-action';
+import CarActionsApi from '@/api/caractions.api';
 
 // components
 
@@ -126,6 +163,8 @@ export default defineComponent({
     const comments = ref<Array<any>>([]);
     const curUserComment = ref<string>('');
     const isNoComOwnCar = ref<boolean>(false);
+    const loadingActions = ref<boolean>(false);
+    const actions = ref<CarAction[]>([]);
 
     // computed
     const curUserId = computed(() => store.getters.getId);
@@ -187,11 +226,18 @@ export default defineComponent({
         UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd');
       }
       phone.value = await CommonApi.getUserPhone(data.ownerId);
+      loadingActions.value = true;
+      await CarActionsApi.getCarActions(data.vincode).then((response) => {
+        actions.value = response;
+        loadingActions.value = false;
+      });
       // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
     });
 
     return {
       car,
+      loadingActions,
+      actions,
       carOwnerId,
       info,
       priceTemp,
@@ -304,6 +350,59 @@ export default defineComponent({
       @include typo-card-body;
       color: $color-viridian-green;
     }
+
+    .car-actions {
+      width: 100%;
+      border-radius: 1rem;
+      border: 0.15rem solid $color-secondary-component-background;
+      color: $color-neutrals-6;
+      margin-bottom: 1rem;
+
+      .loading {
+        padding: 2rem;
+      }
+
+      .no-info {
+        padding: 2rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem;
+
+        .car-action-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          .car-official-info {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            row-gap: 1rem;
+            border: 0.15rem solid $color-secondary-component-background;
+            border-radius: 2rem;
+            padding: 1rem;
+
+            @include for-xs-sm-md-width {
+              grid-template-columns: auto auto;
+            }
+          }
+
+          .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 0.15rem solid $color-secondary-component-background;
+            border-radius: 2rem;
+          }
+        }
+      }
+    }
+
     .car-comments {
       width: 100%;
       border-radius: 1rem;
@@ -379,9 +478,15 @@ export default defineComponent({
 
       div {
         display: flex;
-        align-items: center;
+        align-items: start;
         gap: 0.5rem;
         padding: 0.5rem;
+
+        @include for-xs-sm-md-width {
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
       }
     }
   }
