@@ -66,10 +66,7 @@ const start = async () => {
     secret: 'mysecret',
   });
 
-  fastify.register(require('@fastify/cors'), {
-    origin: ['http://172.20.10.2:8080', 'http://192.168.1.2:8080', 'http://192.168.1.15:8080', 'http://localhost:8080',
-    'http://127.0.0.1:8080', 'http://192.168.1.3:8080', 'http://192.168.1.4:8080'],
-  });
+  fastify.register(require('@fastify/cors'));
 
   fastify.register(require('@fastify/static'), {
     root: path.join(__dirname, './uploads'),

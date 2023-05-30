@@ -15,7 +15,7 @@
           <span>{{ link.name }}</span>
         </router-link>
       </template>
-      <Button v-if="isAuthenticated" @click="logout" class="menu-item btn-logout">
+      <Button v-if="isAuthenticated" @click="() => logout()" class="menu-item btn-logout">
         Вихід
       </Button>
     </div>
@@ -31,8 +31,6 @@ import { computed, defineComponent } from 'vue';
 import LinkData from '@/shared/models/link-data';
 import { useStore } from 'vuex';
 import Button from '@/components/Button';
-import { Actions } from '@/store/props';
-import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'Header',
@@ -44,25 +42,21 @@ export default defineComponent({
       type: Array as () => LinkData[],
       required: true,
     },
+    logout: {
+      type: Function,
+      required: true,
+    },
   },
   emits: [],
   setup() {
     const store = useStore();
-    const router = useRouter();
     // computed
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     // helpers
-    const logout = () => {
-      console.log('logout');
-      store.dispatch(Actions.logout).then(() => {
-        router.push('/home');
-      });
-    };
 
     return {
       isAuthenticated,
-      logout,
     };
   },
 });

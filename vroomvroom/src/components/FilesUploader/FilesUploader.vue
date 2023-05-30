@@ -125,7 +125,6 @@ export default defineComponent({
 
     watch(identityDocumentFiles, (newValue) => {
       emit('update:modelValue', newValue);
-      console.log(newValue);
     });
 
     return {

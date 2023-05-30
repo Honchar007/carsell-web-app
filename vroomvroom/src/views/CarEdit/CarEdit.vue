@@ -105,7 +105,6 @@ export default defineComponent({
     const carImages = ref<any>([]);
 
     const saveAll = async () => {
-      console.log(route.params.id as string);
       const data = { ...carImages.value };
       const car = {
         price: priceTemp.value,

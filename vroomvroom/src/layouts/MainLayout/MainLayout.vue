@@ -5,6 +5,7 @@
         <Header
           :links="LinksHeaderAvtovukyp"
           :height="height || 0"
+          :logout="logout"
         />
         <div class="content" :style="{ height: disableScroll ? `${contentHeight}px` : undefined }">
           <main>
@@ -34,7 +35,6 @@ import {
 import useWindowResize from '@/shared/hooks/use-window-resize';
 
 // helpers
-import svgIconUrl from '@/shared/helpers/svg-icon-url';
 
 // models
 import Header from '@/layouts/Header';
@@ -44,6 +44,8 @@ import Links, {
   LinkAuth, LinkExpert, LinkNotAuth, LinkIsAvtovukyp,
 } from '@/shared/constants/links';
 import { useStore } from 'vuex';
+import { Actions } from '@/store/props';
+import { useRouter } from 'vue-router';
 
 const DESKTOP_PADDING = 32;
 const TABLET_PADDING = 102;
@@ -73,6 +75,7 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const router = useRouter();
 
     // common
     const { height, width } = useWindowResize();
@@ -85,8 +88,8 @@ export default defineComponent({
     const isAvtovukypMan = computed(() => store.getters.isAvtovukyp);
 
     const LinksHeader = computed(() => (isAuthenticated.value ? [...Links, LinkAuth] : [...Links, LinkNotAuth]));
-    const LinksHeaderExpert = computed(() => (isExpert.value ? [...LinksHeader.value, LinkExpert] : [...LinksHeader.value]));
-    const LinksHeaderAvtovukyp = computed(() => (isAvtovukypMan.value
+    const LinksHeaderExpert = computed(() => (isAuthenticated.value && isExpert.value ? [...LinksHeader.value, LinkExpert] : [...LinksHeader.value]));
+    const LinksHeaderAvtovukyp = computed(() => (isAuthenticated.value && isAvtovukypMan.value
       ? [...LinksHeaderExpert.value, LinkIsAvtovukyp]
       : [...LinksHeaderExpert.value]
     ));
@@ -104,41 +107,25 @@ export default defineComponent({
       );
     });
 
-    const allLinks = [{
-      icon: svgIconUrl('home'),
-      name: 'Головна',
-      href: '#',
-    },
-    {
-      icon: svgIconUrl('heart-green'),
-      name: 'Новини',
-      href: '#',
-    },
-    {
-      icon: svgIconUrl('home'),
-      name: 'Про нас',
-      href: '#',
-    },
-    {
-      icon: svgIconUrl('gear'),
-      name: 'Експерти',
-      href: '#',
-    },
-    ];
-
     // helpers
-
+    // async helpers
+    const logout = () => {
+      store.dispatch(Actions.logout).then(() => {
+        router.push('/home');
+      });
+    };
     // watchers
+
     // lifecycle hooks
 
     return {
       height,
       contentHeight,
-      allLinks,
       LinksHeader,
       isAuthenticated,
       LinksHeaderExpert,
       LinksHeaderAvtovukyp,
+      logout,
     };
   },
 });

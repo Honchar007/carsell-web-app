@@ -144,7 +144,6 @@ export default defineComponent({
 
     const makeCarCheck = async () => {
       const wanter = await AuthApi.getUserInfo('', curUser.value.email);
-      console.log(wanter._id);
       const carCheck = {
         model: model.value,
         brand: brand.value,

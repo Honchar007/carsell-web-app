@@ -33,10 +33,9 @@
 
 <script lang="ts">
 import {
-  defineComponent, onMounted, ref, watch,
+  defineComponent, ref, watch,
 } from 'vue';
 
-import CommonApi from '@/api/common.api';
 import getBase64Img from '@/shared/helpers/get-base64-img';
 import Button from '../Button';
 
@@ -59,7 +58,7 @@ export default defineComponent({
     const files = ref<any>([]);
     const imagePreviews = ref<any>([]);
 
-    const removeFile = (index: number) => {
+    const removeFile = () => {
       identityDocumentFile.value = null;
     };
 
@@ -67,9 +66,11 @@ export default defineComponent({
 
     const handleFileChangeUp = async (event: Event) => {
       const inputElement = event.target as HTMLInputElement;
-      // eslint-disable-next-line prefer-destructuring
-      if (inputElement.files && inputElement.files.length > 0) identityDocumentFile.value = inputElement.files[0];
-      console.log(identityDocumentFile.value);
+      if (inputElement.files && inputElement.files.length > 0) {
+        // eslint-disable-next-line prefer-destructuring
+        identityDocumentFile.value = inputElement.files[0];
+        if (inputElement) inputElement.value = '';
+      }
     };
 
     watch(identityDocumentFile, (newValue) => {
@@ -114,6 +115,11 @@ export default defineComponent({
       @include for-xs-sm-md-width {
         display: none;
       }
+      img {
+        max-width: 26rem;
+        height: auto;
+      }
+
     }
     .info-img {
       display: flex;

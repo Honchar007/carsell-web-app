@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import store from '@/store';
+
 import Home from '@/views/Home';
 import MainLayout from '@/layouts/MainLayout';
 import CarList from '@/views/CarList';
@@ -40,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
         path: '/experts',
         name: 'experts',
         component: Experts,
-        meta: { title: ['Experts'] },
+        meta: { title: ['Experts'], requiresAuth: true },
       },
       {
         path: '/news',
@@ -58,7 +60,7 @@ const routes: Array<RouteRecordRaw> = [
         path: '/avtovukyp',
         name: 'avtovukyp',
         component: Avtovukyp,
-        meta: { title: ['Avtovukyp'] },
+        meta: { title: ['Avtovukyp'], requiresAuth: true },
       },
       {
         path: '/sign-in',
@@ -70,7 +72,7 @@ const routes: Array<RouteRecordRaw> = [
         path: '/profile',
         name: 'profile',
         component: Profile,
-        meta: { title: ['Profile'] },
+        meta: { title: ['Profile'], requiresAuth: true },
       },
       {
         path: '/car-page/:id',
@@ -82,7 +84,7 @@ const routes: Array<RouteRecordRaw> = [
         path: '/car-edit/:id',
         name: 'car-edit',
         component: CarEdit,
-        meta: { title: ['Car edit'] },
+        meta: { title: ['Car edit'], requiresAuth: true },
       },
     ],
   },
@@ -107,6 +109,25 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = store.getters?.isAuthenticated; // Check if token is present
+  const isExpert = store.state.user?.isExpert; // Check if user is an expert
+  const isAvtovukyp = store.state.user?.isAvtovukyp; // Check if user is an expert
+
+  if (to.name === 'experts' && (!isAuthenticated || !isExpert)) {
+    next({ name: 'home' });
+  } else if (to.name === 'avtovukyp' && (!isAuthenticated || !isAvtovukyp)) {
+    next({ name: 'home' });
+  } else if (to.name === 'profile' && (!isAuthenticated)) {
+    next({ name: 'signin' });
+  } else if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: 'signin' });
+  } else {
+    // Proceed to the next route
+    next();
+  }
 });
 
 export default router;

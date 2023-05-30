@@ -20,7 +20,6 @@ const CommonApi = {
     const headers = {
       'Content-Type': 'multipart/form-data',
     };
-    console.log(data);
     const res = await http.post(
       '/upload',
       toFormData(data),
@@ -141,7 +140,6 @@ const CommonApi = {
   },
 
   async getOwnCarChecks(id: string) {
-    console.log(id);
     const res = await http.get(`http://127.0.0.1:3000/car-checks-expert/${id}`);
     return res.data;
   },
