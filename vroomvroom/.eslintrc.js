@@ -36,6 +36,7 @@ module.exports = {
     'vuejs-accessibility/click-events-have-key-events': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    "import/no-extraneous-dependencies":'off',
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
   },

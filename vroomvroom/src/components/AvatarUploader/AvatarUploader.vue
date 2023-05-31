@@ -36,7 +36,7 @@ import {
   defineComponent, ref, watch,
 } from 'vue';
 
-import getBase64Img from '@/shared/helpers/get-base64-img';
+import getBase64Img from '../../shared/helpers/get-base64-img';
 import Button from '../Button';
 
 export default defineComponent({

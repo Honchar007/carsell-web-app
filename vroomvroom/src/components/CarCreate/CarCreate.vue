@@ -76,7 +76,7 @@
       </div>
     </div>
     <div class="car-menu">
-      <Button @click="saveAll">Зберегти</Button>
+      <Button @click="saveAll" class="save-btn">Зберегти</Button>
       <Button @click="$router.back()" class="delete" outlined>Повернутися назад</Button>
     </div>
   </div>

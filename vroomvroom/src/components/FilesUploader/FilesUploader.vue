@@ -1,22 +1,6 @@
 <!-- eslint-disable vuejs-accessibility/click-events-have-key-events -->
 <template>
   <div class="main-edit">
-    <!-- <label for="fileUploader" class="file-label">{{ label }}</label>
-    <input
-      ref="fileUploaderRef"
-      id="fileUploader"
-      type="file"
-      multiple
-      @change="handleFileChange"
-      style="display: none"
-    />
-    <div v-if="files.length > 0" class="file-preview">
-      <div v-for="(file, index) in files" :key="index" class="file-item">
-        <img :src="imagePreviews[index]" alt="Preview" class="preview-image" />
-        <span>{{ file.name }}</span>
-        <button @click="removeFile(index)">Remove</button>
-      </div>
-    </div> -->
     <div class="car-block-buttons">
       <input
         type="file"
