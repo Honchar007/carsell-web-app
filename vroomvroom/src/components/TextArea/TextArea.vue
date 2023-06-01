@@ -12,8 +12,8 @@
         :placeholder="placeholder"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement)?.value)"
       />
-      <span v-if="error" class="error-text">{{ error }}</span>
     </label>
+    <p v-if="error" class="error-text">{{ error }}</p>
   </div>
 </template>
 
@@ -104,10 +104,17 @@ export default defineComponent({
       padding-right: 3rem;
     }
   }
+}
 
-  .error-text {
+p {
+  &.error-text {
+    @include typo-headline-4;
+
+    padding: 1.25rem;
     padding-top: 0.25rem;
+    text-align: start;
     color: $color-error;
   }
 }
+
 </style>

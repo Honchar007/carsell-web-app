@@ -5,11 +5,15 @@
       class="search-input"
       v-model="selectValue"
       :disabled="disabled"
+      :class="{
+        'error': !!error,
+      }"
     >
       <option class="option" v-for="option in options" :key="option.value" :value="option.value">
         {{ option.text }}
       </option>
     </select>
+    <p v-if="error" class="error-text">{{ error }}</p>
   </div>
 </template>
 
@@ -31,6 +35,10 @@ export default defineComponent({
     },
     disabled: {
       type: Boolean,
+    },
+    error: {
+      type: String,
+      default: '',
     },
     modelValue: {
       required: true,
@@ -144,6 +152,17 @@ export default defineComponent({
         }
       }
     }
+  }
+}
+
+p {
+  @include typo-headline-4;
+
+  margin-left: 0.75rem;
+
+  &.error-text {
+    padding-top: 0.25rem;
+    color: $color-error;
   }
 }
 </style>

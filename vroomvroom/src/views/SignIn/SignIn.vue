@@ -4,7 +4,7 @@
     <div class="form-item">
       <div class="form-text">Login(email)</div>
       <Input class="form-input"
-        v-model="email"
+        v-model="emailTemp"
       />
     </div>
     <div class="form-item">
@@ -13,7 +13,7 @@
         v-model="password"
       />
     </div>
-    <Button class="form-item signin-button" @click="login(email,password)">Sign in</Button>
+    <Button class="form-item signin-button" @click="login(emailTemp,password)">Sign in</Button>
     <Button class="form-item signin-button" outlined @click="changeAttempt">Sign up?</Button>
   </div>
   <div v-else class="form">
@@ -24,6 +24,7 @@
       <Input class="form-input"
         v-model="firstName"
         placeholder="Андрій"
+        :error="v$.firstName && v$.firstName.$error ? v$.firstName.$errors[0].$message as string : ''"
       />
     </div>
     <div class="form-item">
@@ -31,6 +32,7 @@
       <Input class="form-input"
         v-model="secondName"
         placeholder="Гончар"
+        :error="v$.secondName && v$.secondName.$error ? v$.secondName.$errors[0].$message as string : ''"
       />
     </div>
     <div class="form-item">
@@ -38,7 +40,7 @@
       <Input class="form-input"
         type="password"
         v-model="password"
-        placeholder="super secret"
+        :error="v$.password && v$.password.$error ? v$.password.$errors[0].$message as string : ''"
       />
     </div>
     <div class="form-item">
@@ -46,14 +48,15 @@
       <Input class="form-input"
         v-model="confirmPassword"
         placeholder="super secret"
-        :error="password != confirmPassword && confirmPassword != '' ? 'Паролі не збігаються' : ''"
+        :error="v$.confirmPassword && v$.confirmPassword.$error ? v$.confirmPassword.$errors[0].$message as string : ''"
       />
+        <!-- :error="password != confirmPassword && confirmPassword != '' ? 'Паролі не збігаються' : ''" -->
     </div>
     <div class="form-item">
       <div class="form-text">Email</div>
       <Input class="form-input"
-        v-model="email"
-        placeholder="example@mail.com"
+        v-model="emailTemp"
+        :error="v$.emailTemp && v$.emailTemp.$error ? v$.emailTemp.$errors[0].$message as string : ''"
       />
     </div>
     <div class="form-item">
@@ -61,18 +64,12 @@
       <Input class="form-input"
         v-model="phone"
         placeholder="+380777777777"
+        :error="v$.phone && v$.phone.$error ? v$.phone.$errors[0].$message as string : ''"
       />
     </div>
     <Button
       class="form-item signin-button"
       @click="signUp"
-      :disabled="!(firstName
-      && secondName
-      && confirmPassword
-      && phone
-      && email
-      && password
-      && image) || password != confirmPassword"
     >Sign up</Button>
     <Button class="form-item signin-button" outlined @click="changeAttempt">Are you already sign up? Sign in!</Button>
     <!-- <div v-if="!validation()">Please fill in all fields.</div> -->
@@ -80,7 +77,7 @@
 </template>
 <script lang="ts">
 import {
-  computed, defineComponent, reactive, ref,
+  computed, defineComponent, ref,
 } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -91,8 +88,10 @@ import { useStore } from 'vuex';
 
 import { Actions } from '@/store/props';
 import AvatarUploader from '@/components/AvatarUploader';
-import CommonApi from '@/api/common.api';
+
 import AuthApi from '@/api/auth.api';
+import { helpers, sameAs, email } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
 
 export default defineComponent({
   name: 'SignIn',
@@ -109,11 +108,50 @@ export default defineComponent({
     const secondName = ref<string>('');
     const confirmPassword = ref<string>('');
     const phone = ref<string>('');
-    const email = ref<string>('');
+    const emailTemp = ref<string>('');
     const password = ref<string>('');
     const image = ref<any>(null);
 
     const toggleSignInUp = ref<boolean>(true);
+
+    // validations
+    const validations = {
+      firstName: {
+        required: helpers.withMessage('Необхідно вказати ім\'я', (value) => !!value),
+      },
+      secondName: {
+        required: helpers.withMessage('Необхідно вказати прізвище', (value) => !!value),
+      },
+      password: {
+        required: helpers.withMessage('Необхідно вказати пароль', (value) => !!value),
+      },
+      confirmPassword: {
+        required: helpers.withMessage('Необхідно повторити пароль', (value) => !!value),
+        sameAs: helpers.withMessage('Паролі не співпадають', sameAs(password)),
+      },
+      phone: {
+        required: helpers.withMessage('Необхідно вказати номер телефону', (value) => !!value),
+        regex: helpers.withMessage('Некоректний формат номера телефону', (value: string) => /^\+380[0-9]{3}[0-9]{3}[0-9]{3}$/.test(value)),
+
+      },
+      emailTemp: {
+        required: helpers.withMessage('Необхідно вказати пошту', (value) => !!value),
+        email: helpers.withMessage(
+          'Некоректний формат пошти',
+          email,
+        ),
+      },
+    };
+
+    const v$ = useVuelidate(validations, {
+      firstName,
+      secondName,
+      confirmPassword,
+      phone,
+      emailTemp,
+      password,
+      image,
+    });
 
     // computed
     const isLoading = computed(() => store.state.isLoading);
@@ -125,7 +163,7 @@ export default defineComponent({
         && secondName.value
         && confirmPassword.value
         && phone.value
-        && email.value
+        && emailTemp.value
         && password.value
         && image.value
       ) {
@@ -156,29 +194,32 @@ export default defineComponent({
     }
 
     async function signUp(): Promise<void> {
-      const user = {
-        avatarPath: '',
-        firstName: firstName.value,
-        secondName: secondName.value,
-        email: email.value,
-        phone: phone.value,
-        isAvtovukyp: false,
-        isExpert: false,
-        password: password.value,
-      };
-      await AuthApi.RegUser(user)
-        .then(
-          () => {
-            toggleSignInUp.value = true;
-          },
-        )
-        .catch((error: any) => {
-          console.error((error.response
+      v$.value.$touch();
+      if (!v$.value.$invalid) {
+        const user = {
+          avatarPath: '',
+          firstName: firstName.value,
+          secondName: secondName.value,
+          email: emailTemp.value,
+          phone: phone.value,
+          isAvtovukyp: false,
+          isExpert: false,
+          password: password.value,
+        };
+        await AuthApi.RegUser(user)
+          .then(
+            () => {
+              toggleSignInUp.value = true;
+            },
+          )
+          .catch((error: any) => {
+            console.error((error.response
               && error.response.data
               && error.response.data.message)
             || error.message
             || error.toString());
-        });
+          });
+      }
     }
 
     return {
@@ -186,8 +227,9 @@ export default defineComponent({
       secondName,
       confirmPassword,
       phone,
-      email,
+      emailTemp,
       password,
+      v$,
       image,
       toggleSignInUp,
       isLoading,

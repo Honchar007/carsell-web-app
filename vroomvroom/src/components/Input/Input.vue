@@ -142,6 +142,7 @@ p {
   }
 
   &.error-text {
+    @include typo-headline-4;
     padding-top: 0.25rem;
     color: $color-error;
   }
