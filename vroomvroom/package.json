@@ -7,9 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test:unit": "jest --silent",
-    "coverage": "jest --coverage",
-    "build-stats": "yarn build -- --stats",
-    "run-webpack-bundle-analyzer": "webpack-bundle-analyzer ./build/bundle-stats.json"
+    "coverage": "jest --coverage"
   },
   "dependencies": {
     "@vuelidate/core": "^2.0.2",
