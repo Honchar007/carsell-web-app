@@ -5,6 +5,6 @@
     "server"
   ],
   "scripts": {
-    "build:vroomvroom": "yarn workspace vroomvroom buid"
+    "build:vroomvroom": "yarn workspace vroomvroom build"
   }
 }
