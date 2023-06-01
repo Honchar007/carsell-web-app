@@ -49,12 +49,10 @@ const CarActionModel = require('./models/car-action-model');
 
 const connectionString = 'mongodb://127.0.0.1:27017/vroomvroom';
 
-// Connect to MongoDB
 mongoose
   .connect(connectionString)
   .then(() => {
     console.log('Connected to MongoDB');
-    // You can start performing database operations here
   })
   .catch((error) => {
     console.error('Error connecting to MongoDB:', error);
@@ -289,7 +287,7 @@ const start = async () => {
       try {
         const car = await CarModel.findOneAndUpdate(
           { _id: id },
-          { $push: { comments: comment } }, // Use $push to add the comment to the comments array
+          { $push: { comments: comment } },
           { new: true }
         );
 
@@ -576,11 +574,9 @@ const start = async () => {
       const { refreshToken } = req.body;
 
       try {
-        // Проверяем валидность refreshToken
         const decoded = await fastify.jwt.verify(refreshToken);
 
-        // Генерируем новый токен доступа
-        const token = fastify.jwt.sign({ username: decoded.username });
+        const token = fastify.jwt.sign({ username: decoded.username }, { expiresIn: '7d' });
         const newRefreshToken = fastify.jwt.sign(
           { username: decoded.username },
           { expiresIn: '7d' }
@@ -590,7 +586,7 @@ const start = async () => {
       } catch (err) {
         reply
           .status(401)
-          .send({ message: 'Неверный или истекший токен обновления' });
+          .send({ message: 'Некоректний або вичерпаний токен оновлення' });
       }
     }
   );
@@ -650,7 +646,6 @@ const start = async () => {
         return reply.status(401).send({ message: 'Invalid credentials' });
       }
 
-      // Compare the provided password with the hashed password stored in the user object
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
@@ -676,7 +671,6 @@ const start = async () => {
       password,
     } = req.body;
 
-    // Check if the user with the given email already exists
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return reply
@@ -684,7 +678,6 @@ const start = async () => {
         .send({ message: 'User with the provided email already exists' });
     }
 
-    // Create a new user
     const newUser = new UserModel({
       avatarPath,
       firstName,
@@ -698,11 +691,9 @@ const start = async () => {
     });
 
     try {
-      // Hash the user's password
       const hashedPassword = await bcrypt.hash(password, 10);
       newUser.password = hashedPassword;
 
-      // Save the user to the database
       await newUser.save();
 
       reply.code(201).send({ message: 'User created successfully' });
@@ -730,16 +721,12 @@ const start = async () => {
     const fileNames = filename.split(',');
     const fileContents = [];
     fileNames.forEach(fileName => {
-      // Get the absolute path to the file
       const filePath = path.join(__dirname, 'uploads', fileName);
-      // Read the file content
       const fileContent = fs.readFileSync(filePath);
-      // Add the file content to the array
       const mimeType = mime.getType(filePath);
       fileContents.push({ content: fileContent.toString('base64'), type: mimeType });
     });
 
-    // Send the file contents in the response
     reply.send(fileContents);
   });
 
@@ -755,7 +742,6 @@ const start = async () => {
         await pump(part.file, fs.createWriteStream(`uploads/${ name }`))
         names.push(name)
       } else {
-        // part.type === 'field
         console.log(part)
       }
     }

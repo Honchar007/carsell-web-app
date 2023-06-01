@@ -15,6 +15,7 @@
     </div>
     <Button class="form-item signin-button" @click="login(emailTemp,password)">Sign in</Button>
     <Button class="form-item signin-button" outlined @click="changeAttempt">Sign up?</Button>
+    <p v-if="errorMsgServerSignIn">{{ errorMsgServerSignIn }}</p>
   </div>
   <div v-else class="form">
     <h1 class="form-item">Sign up</h1>
@@ -72,7 +73,7 @@
       @click="signUp"
     >Sign up</Button>
     <Button class="form-item signin-button" outlined @click="changeAttempt">Are you already sign up? Sign in!</Button>
-    <!-- <div v-if="!validation()">Please fill in all fields.</div> -->
+    <p v-if="errorMsgServer">{{ errorMsgServer }}</p>
   </div>
 </template>
 <script lang="ts">
@@ -114,6 +115,8 @@ export default defineComponent({
 
     const toggleSignInUp = ref<boolean>(true);
 
+    const errorMsgServerSignIn = ref<string>('');
+    const errorMsgServer = ref<string>('');
     // validations
     const validations = {
       firstName: {
@@ -185,7 +188,7 @@ export default defineComponent({
           },
         )
         .catch((error: any) => {
-          console.error((error.response
+          errorMsgServerSignIn.value = ((error.response
               && error.response.data
               && error.response.data.message)
             || error.message
@@ -210,10 +213,17 @@ export default defineComponent({
           .then(
             () => {
               toggleSignInUp.value = true;
+              firstName.value = '';
+              secondName.value = '';
+              emailTemp.value = '';
+              password.value = '';
+              confirmPassword.value = '';
+              phone.value = '';
+              v$.value.$reset();
             },
           )
           .catch((error: any) => {
-            console.error((error.response
+            errorMsgServer.value = ((error.response
               && error.response.data
               && error.response.data.message)
             || error.message
@@ -229,6 +239,8 @@ export default defineComponent({
       phone,
       emailTemp,
       password,
+      errorMsgServer,
+      errorMsgServerSignIn,
       v$,
       image,
       toggleSignInUp,

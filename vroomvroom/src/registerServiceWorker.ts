@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === 'production') {
       console.log('New content is available; please refresh.');
     },
     offline() {
-      console.log('No internet connection found. App is running in offline mode.');
+      document.body.innerHTML = '<h1>No internet connection found. VroomVroom is running in offline mode.</h1>';
     },
     error(error) {
       console.error('Error during service worker registration:', error);
