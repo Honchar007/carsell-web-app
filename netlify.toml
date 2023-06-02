@@ -1,8 +1,11 @@
-# example netlify.toml
 [build]
   command = "yarn workspace vroomvroom build"
-  functions = "netlify/functions"
-  publish = "."
+  publish = "vroomvroom/dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/vroomvroom/:splat"
+  status = 200
 
   ## Uncomment to use this redirect for Single Page Applications like create-react-app.
   ## Not needed for static site generators.
