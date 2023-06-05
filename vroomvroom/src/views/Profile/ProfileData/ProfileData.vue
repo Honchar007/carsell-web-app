@@ -106,7 +106,7 @@ export default defineComponent({
 
     const fetchCarImages = async (car: any) => {
       if (car.carPicsPath[0]) {
-        const image = await CommonApi.getImages(car._id, car.carPicsPath[0], '');
+        const image = await CommonApi.getImages(car._id, car.carPicsPath[0]);
         car.image = { ...image[0] };
       }
     };

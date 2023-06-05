@@ -7,10 +7,10 @@
       </div>
     </div>
     <div v-if="images.length > 1" class="menu">
-      <div class="btn btn-prev" aria-label="Previous slide" @click="event => slide(event, -1)">
+      <div class="btn" aria-label="Previous slide" @click="event => slide(event, -1)">
         &#10094;
       </div>
-      <div class="btn btn-next" aria-label="Next slide" @click="event => slide(event, 1)">
+      <div class="btn" aria-label="Next slide" @click="event => slide(event, 1)">
         &#10095;
       </div>
     </div>

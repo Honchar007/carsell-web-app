@@ -92,6 +92,7 @@ export default defineComponent({
     const store = useStore();
 
     const user = computed(() => store.getters.getUser);
+    const token = computed(() => store.getters.getToken);
 
     const openCarPage = () => {
       router.push(`/car-page/${props.linkPath}`);
@@ -107,12 +108,13 @@ export default defineComponent({
             phone: user.value.phone,
           },
         },
-        '',
+        token.value,
       ).then(() => router.push('/home'));
     };
 
     const deleteCheckById = async () => {
       await CommonApi.deleteCarCheck(
+        token.value,
         props.idCheck,
       ).then(() => router.push('/home'));
     };

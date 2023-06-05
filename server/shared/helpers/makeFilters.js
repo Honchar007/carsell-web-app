@@ -1,5 +1,5 @@
 const makeFilters = (queryParams) => {
-  console.log(queryParams);
+
   const {
     search,
     brand,

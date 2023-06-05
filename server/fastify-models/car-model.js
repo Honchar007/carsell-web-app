@@ -64,8 +64,15 @@ const getAllCarsSchema = {
   tags: ['Cars'],
   response: {
     200: {
-      type: 'array',
-      items: CarSchema,
+      type: 'object',
+      properties: {
+        carsres: {
+          type: 'array',
+          items: CarSchema,
+        },
+        totalPages: { type: 'integer' },
+        currentPage: { type: 'integer' },
+      }
     },
   },
 };

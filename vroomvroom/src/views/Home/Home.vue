@@ -92,6 +92,16 @@
         :link-path="car._id"
       />
     </div>
+    <div class="pagination">
+      <div class="btn" aria-label="Previous page" @click="previousPage" :disabled="currPage === 1">
+        &#10094;
+      </div>
+      <span class="pages">Page {{ currPage }} of {{ totalP }}</span>
+
+      <div class="btn" aria-label="Next page" @click="nextPage" :disabled="currPage === totalP">
+        &#10095;
+      </div>
+    </div>
   </div>
 </template>
 
@@ -100,7 +110,6 @@ import {
   computed,
   defineComponent,
   onMounted,
-  provide,
   ref,
   watch,
 } from 'vue';
@@ -148,12 +157,28 @@ export default defineComponent({
     const fuel = ref<string>('');
     const transmission = ref<string>('');
 
+    const currPage = ref<number>(1);
+    const totalP = ref<number>(0);
     const dropdownOpened = ref<boolean>(false);
-    const cars = ref<Array<any>>([]);
+    const cars = ref<any>([]);
     const models = ref<Array<any>>([]);
 
     const openDropdown = (): void => {
       dropdownOpened.value = !dropdownOpened.value;
+    };
+
+    const previousPage = (): void => {
+      if (currPage.value > 1) {
+        currPage.value -= 1;
+        search();
+      }
+    };
+
+    const nextPage = (): void => {
+      if (currPage.value < totalP.value) {
+        currPage.value += 1;
+        search();
+      }
     };
     // computed
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
@@ -162,7 +187,7 @@ export default defineComponent({
     // async helpers
     const fetchCarImages = async (car: any) => {
       if (car.carPicsPath[0]) {
-        const image = await CommonApi.getImages(car._id, car.carPicsPath[0], '');
+        const image = await CommonApi.getImages(car._id, car.carPicsPath[0]);
         car.image = { ...image[0] };
       }
     };
@@ -180,11 +205,21 @@ export default defineComponent({
       if (minYear.value !== 0) query.maxYear = maxYear.value;
       if (fuel.value !== '') query.fuel = fuel.value;
       if (transmission.value !== '') query.transmission = transmission.value;
-      cars.value = await CommonApi.getCars({ ...query });
+      query.currentPage = currPage.value;
+      const { carsres, totalPages, currentPage } = await CommonApi.getCars({ ...query });
+      cars.value = [...carsres];
+      console.log(cars);
+      totalP.value = totalPages;
+      if (currentPage) currPage.value = currentPage;
     };
 
     onMounted(async () => {
-      cars.value = await CommonApi.getCars('');
+      const { carsres, totalPages, currentPage } = await CommonApi.getCars({ });
+      console.log(carsres);
+      cars.value = carsres.length > 0 ? [...carsres] : [];
+      console.log(cars.value);
+      totalP.value = totalPages;
+      if (currentPage) currPage.value = currentPage;
     });
 
     // watchers
@@ -192,7 +227,11 @@ export default defineComponent({
       if (newOdo > maxOdo.value && maxOdo.value > 0) maxOdo.value = newOdo;
     });
 
-    watch(cars, async (newCars) => {
+    // watch(currPage, () => {
+    //   search();
+    // });
+
+    watch(cars, async (newCars: Array<any>) => {
       for (const car of newCars) {
         if (!car.image) {
           await fetchCarImages(car);
@@ -225,8 +264,12 @@ export default defineComponent({
       maxYear,
       fuel,
       transmission,
+      currPage,
+      totalP,
       dropdownOpened,
       openDropdown,
+      previousPage,
+      nextPage,
       getBase64Img,
       getRangeYear,
       isAuthenticated,
@@ -363,6 +406,34 @@ export default defineComponent({
       padding: 2rem 0;
       text-align: center;
       color: $color-peach-primary;
+    }
+  }
+
+  .pagination {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+
+    .btn {
+      cursor: pointer;
+      border: 0.1rem solid $color-viridian-green;
+      border-radius: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 4.25rem;
+      height: 4.25rem;
+      transition: transform 0.3s ease-in-out;
+
+      &:last-child {
+        margin-right: 1rem;
+      }
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
     }
   }
 }

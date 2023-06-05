@@ -281,6 +281,7 @@ export default defineComponent({
     const models = ref<Array<any>>([]);
 
     const ownerId = computed(() => store.getters.getId);
+    const token = computed(() => store.getters.getToken);
 
     const saveAll = async () => {
       v$.value.$touch();
@@ -310,8 +311,8 @@ export default defineComponent({
           isAvtovukypSale: isAvtovukypSaleTemp.value,
         };
 
-        await CommonApi.CreateCar('646bde2c9cf75853200b1ee6', car).then(async (carresp) => {
-          await CommonApi.uploadImages(carresp._id, { ...data }, '646bde2c9cf75853200b1ee6').then(() => router.push('/home'));
+        await CommonApi.CreateCar(token.value, car).then(async (carresp) => {
+          await CommonApi.uploadImages(carresp._id, { ...data }, token.value).then(() => router.push('/home'));
         });
       } else { console.log('Not valid'); }
     };

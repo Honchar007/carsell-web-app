@@ -96,8 +96,10 @@ const start = async () => {
       reply.send(error);
     }
   });
-
-  fastify.get('/car-actions/:vin', { schema: getCarActionByVinSchema }, async (req, reply) => {
+// onRequest: [fastify.authenticate],
+  fastify.get('/car-actions/:vin', {
+    schema: getCarActionByVinSchema,
+  }, async (req, reply) => {
     const VIN = req.params.vin;
 
     try {
@@ -119,17 +121,25 @@ const start = async () => {
     {
       schema: getAllCarsSchema,
     },
-    (req, reply) => {
+    async (req, reply) => {
+      const page = parseInt(req.query.currentPage) || 1;
       const query = makeFilters(req.query);
       query.isAvtovukypSale = false;
 
-      CarModel.find(query)
+      const totalCars = await CarModel.countDocuments(query);
+      console.log(totalCars);
+
+      const totalPages = Math.ceil(totalCars / 6);
+      console.log(totalPages);
+      await CarModel.find(query)
         .lean()
         .select(
           'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication fuel'
         )
+        .skip((page - 1) * 6)
+        .limit(6)
         .then((result) => {
-          reply.send(result);
+          reply.send({ carsres: result, totalPages, currentPage: page });
         })
         .catch((error) => {
           reply.send(error);
@@ -140,6 +150,7 @@ const start = async () => {
   fastify.get(
     '/cars-avtovukyp',
     {
+      onRequest: [fastify.authenticate],
       schema: getAllCarsSchema,
     },
     async (req, reply) => {
@@ -161,6 +172,7 @@ const start = async () => {
   fastify.get(
     '/my-cars/:ownerId',
     {
+      onRequest: [fastify.authenticate],
       schema: getAllOwnerCarsSchema,
     },
     (req, reply) => {
@@ -223,6 +235,7 @@ const start = async () => {
   fastify.post(
     '/create-car',
     {
+      onRequest: [fastify.authenticate],
       schema: createCarSchema,
     },
     (req, reply) => {
@@ -278,7 +291,9 @@ const start = async () => {
   );
 
   fastify.put(
-    '/car-comment/:id',
+    '/car-comment/:id',{
+      onRequest: [fastify.authenticate],
+    },
     async (req, reply) => {
       const id = req.params.id;
       console.log(req.body);
@@ -305,7 +320,10 @@ const start = async () => {
 
   fastify.put(
     '/car-update/:id',
-    { schema: updateCarSchema },
+    {
+      onRequest: [fastify.authenticate],
+      schema: updateCarSchema
+    },
     async (req, reply) => {
       const id = req.params.id;
       console.log(req.body.payload);
@@ -360,6 +378,7 @@ const start = async () => {
   fastify.delete(
     '/car-delete/:id',
     {
+      onRequest: [fastify.authenticate],
       schema: deleteCarSchema,
     },
     async (req, reply) => {
@@ -383,6 +402,7 @@ const start = async () => {
   fastify.get(
     '/car-checks',
     {
+      onRequest: [fastify.authenticate],
       schema: getAllCarCheckSchema,
     },
     (req, reply) => {
@@ -403,6 +423,7 @@ const start = async () => {
   fastify.get(
     '/car-checks-expert/:id',
     {
+      onRequest: [fastify.authenticate],
       schema: getAllCarCheckSchema,
     },
     (req, reply) => {
@@ -425,6 +446,7 @@ const start = async () => {
   fastify.get(
     '/car-checks-own/:id',
     {
+      onRequest: [fastify.authenticate],
       schema: getAllCarCheckSchema,
     },
     (req, reply) => {
@@ -446,6 +468,7 @@ const start = async () => {
   fastify.post(
     '/car-checks',
     {
+      onRequest: [fastify.authenticate],
       schema: createCarCheckSchema,
     },
     async (req, reply) => {
@@ -490,7 +513,10 @@ const start = async () => {
 
   fastify.put(
     '/car-check-sign/:id',
-    { schema: updateCarCheckSchema },
+    {
+      onRequest: [fastify.authenticate],
+      schema: updateCarCheckSchema
+    },
     async (req, reply) => {
       const id = req.params.id;
       const { checker } = req.body;
@@ -518,6 +544,7 @@ const start = async () => {
   fastify.delete(
     '/car-check-delete/:id',
     {
+      onRequest: [fastify.authenticate],
       schema: deleteCarCheckSchema,
     },
     async (req, reply) => {
@@ -758,16 +785,6 @@ const start = async () => {
     reply.send()
   })
 
-  fastify.get(
-    '/home',
-    {
-      onRequest: [fastify.authenticate],
-    },
-    async function (req, reply) {
-      return reply.send('in home');
-    }
-  );
-
   fastify.listen({ port: 3000 }, (error) => {
     if (error) {
       throw error;
@@ -775,6 +792,6 @@ const start = async () => {
       console.log('Server is running on port 3000');
     }
   });
-};
+}
 
 start();

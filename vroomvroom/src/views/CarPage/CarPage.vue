@@ -169,7 +169,7 @@ export default defineComponent({
     // computed
     const curUserId = computed(() => store.getters.getId);
     const curUser = computed(() => store.getters.getUser);
-
+    const token = computed(() => store.getters.getToken);
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
     // helpers
@@ -178,7 +178,7 @@ export default defineComponent({
     };
     // async helpers
     const deleteCar = async () => {
-      await CommonApi.DeleteCar('21', route.params.id as string).then(() => router.back());
+      await CommonApi.DeleteCar(token.value, route.params.id as string).then(() => router.back());
     };
 
     const makeCarCheck = async () => {
@@ -193,11 +193,11 @@ export default defineComponent({
         email: wanter.email,
         phone: wanter.phone,
       };
-      await CommonApi.CreateCarCheck('21', carCheck);
+      await CommonApi.CreateCarCheck(token.value, carCheck);
     };
 
     const comment = async () => {
-      await CommonApi.AddCarComment('token', {
+      await CommonApi.AddCarComment(token.value, {
         name: curUser.value.firstName,
         text: curUserComment.value,
       }, route.params.id as string);
@@ -205,7 +205,7 @@ export default defineComponent({
     };
 
     onMounted(async () => {
-      const data = await CommonApi.getCarInfo('21', route.params.id as string);
+      const data = await CommonApi.getCarInfo(route.params.id as string);
       const imgPaths = data.carPicsPath.join(',');
       info.value = `${data.brand} ${data.model} ${data.year}`;
       carOwnerId.value = data.ownerId;
@@ -223,7 +223,7 @@ export default defineComponent({
       isNoComOwnCar.value = !(data.comments.length === 0 && curUserId.value === data.ownerId);
 
       if (imgPaths.length > 0) {
-        UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd');
+        UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths);
       }
       phone.value = await CommonApi.getUserPhone(data.ownerId);
       loadingActions.value = true;

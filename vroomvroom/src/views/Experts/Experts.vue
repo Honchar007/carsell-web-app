@@ -73,7 +73,7 @@ export default defineComponent({
 
     onMounted(async () => {
       carChecks.value = await CommonApi.getCarChecks(token.value);
-      ownCarChecks.value = await CommonApi.getOwnCarChecks(userId.value);
+      ownCarChecks.value = await CommonApi.getOwnCarChecks(token.value, userId.value);
     });
 
     return {

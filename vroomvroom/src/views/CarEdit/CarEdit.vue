@@ -3,11 +3,6 @@
   <div class="car-page">
     <h1>Редагування</h1>
     <FilesUploader v-model="carImages" label="FILE UPLOAD" />
-    <!-- <CommonFileUploader
-        btn-text="Upload"
-        file-types=".jpeg, .jpg, .png, .gif"
-        @update:model-value="$emit('update:modelValue', $event)"
-    /> -->
     <div v-if="UploadedFiles.length > 0" class="car-blocks">
       <div v-for="(file, index) in UploadedFiles" :key="index" class="car-block-img">
         <img :src="getBase64Img(file.type, decodeURIComponent(file.content))" :alt="car.brand">
@@ -53,7 +48,9 @@
   </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import {
+  computed, defineComponent, onMounted, ref,
+} from 'vue';
 
 // components
 import Button from '@/components/Button';
@@ -63,6 +60,7 @@ import FilesUploader from '@/components/FilesUploader';
 import CommonApi from '@/api/common.api';
 import getBase64Img from '@/shared/helpers/get-base64-img';
 import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
 // constants
 const car = {
@@ -91,6 +89,7 @@ export default defineComponent({
   setup() {
     const route = useRoute();
     const router = useRouter();
+    const store = useStore();
 
     const UploadedFiles = ref<any>([]);
     const id = ref<string>('');
@@ -104,6 +103,8 @@ export default defineComponent({
     const descriptionTemp = ref<string>(car.description);
     const carImages = ref<any>([]);
 
+    const token = computed(() => store.getters.getToken);
+
     const saveAll = async () => {
       const data = { ...carImages.value };
       const car = {
@@ -114,13 +115,13 @@ export default defineComponent({
         odometr: odometrTemp.value,
         description: descriptionTemp.value,
       };
-      await CommonApi.UpdateCar('646bde2c9cf75853200b1ee6', car, route.params.id as string);
-      if (carImages.value) CommonApi.uploadImages('646bde2c9cf75853200b1ee6', { ...data }, '646bde2c9cf75853200b1ee6');
+      await CommonApi.UpdateCar(token.value, car, route.params.id as string);
+      if (carImages.value) CommonApi.uploadImages(route.params.id as string, { ...data }, token.value);
       router.back();
     };
 
     onMounted(async () => {
-      const data = await CommonApi.getCarInfo('21', route.params.id as string);
+      const data = await CommonApi.getCarInfo(route.params.id as string);
       const imgPaths = data.carPicsPath.join(',');
       info.value = `${data.brand} ${data.model} ${data.year}`;
       priceTemp.value = data.price;
@@ -130,7 +131,7 @@ export default defineComponent({
       odometrTemp.value = data.odometr;
       transmissionTemp.value = data.transmission;
       descriptionTemp.value = data.description;
-      if (data.carPicsPath.length > 0) { UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths, 'asd'); }
+      if (data.carPicsPath.length > 0) { UploadedFiles.value = await CommonApi.getImages(route.params.id as string, imgPaths); }
       // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
     });
 

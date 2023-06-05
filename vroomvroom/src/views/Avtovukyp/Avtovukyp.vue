@@ -53,18 +53,19 @@ export default defineComponent({
 
     // computed
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
+    const token = computed(() => store.getters.getToken);
 
     // helpers
     // async helpers
     const fetchCarImages = async (car: any) => {
       if (car.carPicsPath[0]) {
-        const image = await CommonApi.getImages(car._id, car.carPicsPath[0], '');
+        const image = await CommonApi.getImages(car._id, car.carPicsPath[0]);
         car.image = { ...image[0] };
       }
     };
 
     onMounted(async () => {
-      cars.value = await CommonApi.getCarsAvtovukyp('');
+      cars.value = await CommonApi.getCarsAvtovukyp(token.value);
     });
 
     // watchers

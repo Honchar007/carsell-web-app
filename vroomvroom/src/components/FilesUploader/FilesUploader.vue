@@ -58,7 +58,6 @@ export default defineComponent({
   setup(_, { emit }) {
     const idFileInput = ref<any>([]);
     const identityDocumentFiles = ref<any>([]);
-    const UploadedFiles = ref<any>([]);
 
     const files = ref<any>([]);
     const imagePreviews = ref<any>([]);
@@ -102,11 +101,6 @@ export default defineComponent({
       identityDocumentFiles.value = fileList;
     };
 
-    onMounted(async () => {
-      UploadedFiles.value = await CommonApi.getImages('21', 'car-default.jpg,profile-default.jpg', 'asd');
-      // UploadedFiles.value = await CommonApi.getImage('21', 'car-default.jpg', 'asd');
-    });
-
     watch(identityDocumentFiles, (newValue) => {
       emit('update:modelValue', newValue);
     });
@@ -118,7 +112,6 @@ export default defineComponent({
       removeFile,
       idFileInput,
       identityDocumentFiles,
-      UploadedFiles,
       getFileUrl,
       handleFileChangeUp,
       getBase64Img,
