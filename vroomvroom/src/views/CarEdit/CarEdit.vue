@@ -27,12 +27,25 @@
           <Input class="car-info-input" v-model="volumeTemp" />
         </div>
         <div class="car-info-item">
-          <span class="car-info-headline">КПП:</span>
-          <Input class="car-info-input" v-model="transmissionTemp" />
+          <Select
+            v-model="fuelTemp"
+            :options="Fuels"
+            :name-label="'Вид палива:'"
+          ></Select>
         </div>
         <div class="car-info-item">
-          <span class="car-info-headline">Колір:</span>
-          <Input class="car-info-input" v-model="colorTemp" />
+          <Select
+            v-model="transmissionTemp"
+            :options="Transmissions"
+            :name-label="'Вид КПП:'"
+          ></Select>
+        </div>
+        <div class="car-info-item">
+          <Select
+            v-model="colorTemp"
+            :options="CarColors"
+            :name-label="'Колір:'"
+          ></Select>
         </div>
       </div>
       <div class="car-description-wrapper">
@@ -54,6 +67,7 @@ import {
 
 // components
 import Button from '@/components/Button';
+import Select from '@/components/Select';
 import Input from '@/components/Input';
 import TextArea from '@/components/TextArea';
 import FilesUploader from '@/components/FilesUploader';
@@ -63,6 +77,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 
 // constants
+import Transmissions from '@/shared/constants/transmissionsEdit';
+import Fuels from '@/shared/constants/fuelsEdit';
+import CarColors from '@/shared/constants/carColorsEdit';
+
 const car = {
   image: 'car-default.jpg',
   model: 'Slavuta',
@@ -82,6 +100,7 @@ export default defineComponent({
   name: 'CarEdit',
   components: {
     Button,
+    Select,
     Input,
     TextArea,
     FilesUploader,
@@ -100,17 +119,20 @@ export default defineComponent({
     const yearTemp = ref<number>(car.year);
     const odometrTemp = ref<number>(car.odometr);
     const transmissionTemp = ref<string>(car.transmission);
+    const fuelTemp = ref<string>('');
     const descriptionTemp = ref<string>(car.description);
     const carImages = ref<any>([]);
 
     const token = computed(() => store.getters.getToken);
 
     const saveAll = async () => {
+      console.log(carImages.value);
       const data = { ...carImages.value };
       const car = {
         price: priceTemp.value,
         volume: volumeTemp.value,
         transmission: transmissionTemp.value,
+        fuel: fuelTemp.value,
         color: colorTemp.value,
         odometr: odometrTemp.value,
         description: descriptionTemp.value,
@@ -126,6 +148,7 @@ export default defineComponent({
       info.value = `${data.brand} ${data.model} ${data.year}`;
       priceTemp.value = data.price;
       volumeTemp.value = data.volume;
+      fuelTemp.value = data.fuel;
       colorTemp.value = data.color;
       yearTemp.value = data.year;
       odometrTemp.value = data.odometr;
@@ -136,10 +159,14 @@ export default defineComponent({
     });
 
     return {
+      Transmissions,
+      Fuels,
+      CarColors,
       car,
       info,
       priceTemp,
       volumeTemp,
+      fuelTemp,
       colorTemp,
       yearTemp,
       odometrTemp,

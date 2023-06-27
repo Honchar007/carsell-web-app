@@ -25,6 +25,7 @@
           </div>
           <div>Рік випуску: {{ year }}</div>
           <div class="additional-info">Пробіг: {{ odometr }} тис. км</div>
+          <div>Тип пального: {{ FuelsCard[fuel] as string }}</div>
           <div class="car-price">Ціна: {{ price }}</div>
         </div>
       </div>
@@ -39,6 +40,8 @@ import { computed, defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 
 // components
+// constants
+import FuelsCard from '@/shared/constants/fuelsCard';
 
 export default defineComponent({
   name: 'ProfileCarCard',
@@ -87,6 +90,10 @@ export default defineComponent({
       default: 2000,
       required: true,
     },
+    fuel: {
+      type: String,
+      required: true,
+    },
     odometr: {
       type: Number,
       default: 100,
@@ -104,6 +111,7 @@ export default defineComponent({
     const descriptionCut = computed(() => ((props.description.length > 100)
       ? props.description.substring(0, 100).concat('...') : props.description));
     return {
+      FuelsCard,
       openCarPage,
       descriptionCut,
     };

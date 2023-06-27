@@ -56,6 +56,7 @@ const getCarCheckSchema = {
 const createCarCheckSchema = {
   description: 'Create a new car check',
   tags: ['Car Checks'],
+  security: [{ bearerAuth: [] }],
   body: {
     type: 'object',
     properties: {
@@ -86,6 +87,7 @@ const createCarCheckSchema = {
 
 const updateCarCheckSchema = {
   tags: ['Car Checks'],
+  security: [{ bearerAuth: [] }],
   params: {
     type: 'object',
     properties: {
@@ -129,6 +131,7 @@ const updateCarCheckSchema = {
 
 const deleteCarCheckSchema = {
   tags: ['Car Checks'],
+  security: [{ bearerAuth: [] }],
   params: {
     type: 'object',
     properties: {

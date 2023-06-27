@@ -27,7 +27,7 @@
             :value="identityDocumentFiles[index].name"
             placeholder="file name"
           >
-          <Button @click="removeFile(index)">Remove</Button>
+          <Button class="btn-remove" @click="removeFile(index)">Remove</Button>
         </div>
       </div>
     </div>
@@ -123,6 +123,7 @@ export default defineComponent({
 <style lang="scss">
 @import "src/styles/typography";
 @import "src/styles/colors";
+@import "src/styles/mixins";
 
 .main-edit {
   margin: 1rem;
@@ -205,16 +206,17 @@ export default defineComponent({
   grid-template-columns: 1fr 1fr;
   grid-row-gap: 1rem;
   grid-column-gap: 1rem;
+  grid-column-gap: 1rem;
   height: 100%;
   width: 100%;
 
   .car-block {
-    height: 100%;
     .car-block-img {
       height: 80%;
       margin: 0 auto;
       margin-bottom: 1rem;
       img {
+        max-height: 16rem;
         width: 100%;
         object-fit: contain;
       }
@@ -223,6 +225,9 @@ export default defineComponent({
     .info-img {
       display: flex;
 
+      @include for-xs-width {
+        justify-content: center;
+      }
       input {
         @include typo-headline-3;
 
@@ -230,6 +235,15 @@ export default defineComponent({
         border: 1px solid #29ABE2;
         border-radius: 10px;
         color: #102941;
+
+        @include for-xs-width {
+          display: none;
+        }
+      }
+
+      .btn-remove {
+        display: flex;
+        height: 20px;
       }
     }
   }

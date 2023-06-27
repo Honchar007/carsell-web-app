@@ -48,11 +48,11 @@ export default createStore({
       if (token !== null && refreshToken !== null) {
         return true;
       }
+
       return false;
     },
     isLoading: (state) => !!state.isLoading,
-    isAvtovukyp: (state): boolean => !!(state.session.token && state.session.refreshTimerId)
-      && state.user.isAvtovukyp,
+    isAvtovukyp: (state): boolean => state.user.isAvtovukyp,
     isExpert: (state): boolean => state.user.isExpert,
   },
   mutations: {

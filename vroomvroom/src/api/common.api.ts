@@ -17,14 +17,14 @@ const CommonApi = {
     return res.data;
   },
 
-  async uploadImage(id: string, data: any, token: string) {
+  async uploadImage(email: string, data: any) {
     const headers = {
       'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${token}`,
     };
+    console.log(data);
     const res = await http.post(
-      '/upload',
-      toFormData(data),
+      `/upload-avatar/${email}`,
+      toFormData({ 0: data }),
       {
         headers,
       },

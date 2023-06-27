@@ -20,6 +20,7 @@
   <div v-else class="form">
     <h1 class="form-item">Sign up</h1>
     <AvatarUploader v-model="image" label="AVATAR UPLOAD"/>
+    <!-- <FilesUploader v-model="image" label="AVATAR UPLOAD"/> -->
     <div class="form-item">
       <div class="form-text">Ім'я</div>
       <Input class="form-input"
@@ -72,6 +73,7 @@
       class="form-item signin-button"
       @click="signUp"
     >Sign up</Button>
+    <Button @click="saveImage">saveImage</Button>
     <Button class="form-item signin-button" outlined @click="changeAttempt">Are you already sign up? Sign in!</Button>
     <p v-if="errorMsgServer">{{ errorMsgServer }}</p>
   </div>
@@ -93,6 +95,8 @@ import AvatarUploader from '@/components/AvatarUploader';
 import AuthApi from '@/api/auth.api';
 import { helpers, sameAs, email } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import CommonApi from '@/api/common.api';
+// import FilesUploader from '@/components/FilesUploader';
 
 export default defineComponent({
   name: 'SignIn',
@@ -100,6 +104,7 @@ export default defineComponent({
     Input,
     Button,
     AvatarUploader,
+    // FilesUploader,
   },
   setup() {
     const store = useStore();
@@ -211,8 +216,9 @@ export default defineComponent({
         };
         await AuthApi.RegUser(user)
           .then(
-            () => {
+            async () => {
               toggleSignInUp.value = true;
+              await CommonApi.uploadImage(emailTemp.value, image.value);
               firstName.value = '';
               secondName.value = '';
               emailTemp.value = '';
@@ -232,7 +238,12 @@ export default defineComponent({
       }
     }
 
+    const saveImage = async () => {
+      await CommonApi.uploadImage(emailTemp.value, image.value);
+    };
+
     return {
+      saveImage,
       firstName,
       secondName,
       confirmPassword,

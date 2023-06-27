@@ -10,6 +10,7 @@ const CarSchema = mongoose.Schema({
   volume: Number,
   transmission: String,
   color: String,
+  fuel: String,
   year: Number,
   town: String,
   odometr: Number,

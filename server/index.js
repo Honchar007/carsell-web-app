@@ -25,6 +25,7 @@ const {
 const {
   getCarSchema,
   getAllCarsSchema,
+  getAllAvtovykupCarsSchema,
   createCarSchema,
   updateCarSchema,
   deleteCarSchema,
@@ -151,7 +152,7 @@ const start = async () => {
     '/cars-avtovukyp',
     {
       onRequest: [fastify.authenticate],
-      schema: getAllCarsSchema,
+      schema: getAllAvtovykupCarsSchema,
     },
     async (req, reply) => {
       try {
@@ -180,7 +181,7 @@ const start = async () => {
       CarModel.find({ownerId})
         .lean()
         .select(
-          'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
+          'id ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication fuel'
         )
         .then((result) => {
           reply.send(result);
@@ -221,7 +222,7 @@ const start = async () => {
       CarModel.findOne({ _id: id })
         .lean()
         .select(
-          'ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication'
+          'ownerId carPicsPath brand model price volume transmission color year town odometr vincode plates description comments isAvtovukypSale datePublication fuel'
         )
         .then((result) => {
           reply.send(result);
@@ -338,6 +339,7 @@ const start = async () => {
         year,
         odometr,
         vincode,
+        fuel,
         plates,
         description,
       } = req.body.payload;
@@ -353,6 +355,7 @@ const start = async () => {
             volume: volume,
             transmission,
             color,
+            fuel,
             year,
             odometr,
             vincode,
@@ -730,13 +733,34 @@ const start = async () => {
     }
   });
 
-  fastify.post('/upload', async function (req, reply) {
+  fastify.post('/upload-avatar/:email', async function (req, reply) {
+    const { email } = req.params;
+    const parts = req.parts();
+    console.log(req.body);
 
-    const data = await req.file()
-
-    await pump(data.file, fs.createWriteStream(`uploads/${ Date.now() + "-" + data.filename }`))
-
-    reply.send("SUCCESS");
+    let names = []
+    // eslint-disable-next-line node/no-unsupported-features/es-syntax
+    for await (const part of parts) {
+      console.log(part.type === 'file');
+      if (part.type === 'file') {
+        const name = Date.now() + "-" + part.filename;
+        await pump(part.file, fs.createWriteStream(`uploads/${ name }`))
+        names.push(name)
+      } else {
+        console.log(part)
+      }
+    }
+    if(names.length > 0) {
+      const user  = await UserModel.findOneAndUpdate(
+        { email: email },
+        {
+          avatarPath: names[0],
+        },
+        { new: true }
+      );
+      console.log(user);
+    }
+    reply.send()
   });
 
   fastify.get('/upload/:filename', async function (req, reply) {

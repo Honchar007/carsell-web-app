@@ -3,8 +3,6 @@ import store from '@/store';
 
 import Home from '@/views/Home';
 import MainLayout from '@/layouts/MainLayout';
-import CarList from '@/views/CarList';
-import CarFastOrder from '@/views/CarFastOrder';
 import Experts from '@/views/Experts';
 import News from '@/views/News';
 import AboutUs from '@/views/AboutUs';
@@ -25,18 +23,6 @@ const routes: Array<RouteRecordRaw> = [
         name: 'home',
         component: Home,
         meta: { title: ['Home'] },
-      },
-      {
-        path: 'cars',
-        name: 'cars',
-        component: CarList,
-        meta: { title: ['Cars'] },
-      },
-      {
-        path: '/cars-fast-sale',
-        name: 'cars-fast-sale',
-        component: CarFastOrder,
-        meta: { title: ['Car Fast Sale'] },
       },
       {
         path: '/experts',
@@ -88,22 +74,6 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
   },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutUs/AboutUs.vue'),
-  },
-  {
-    path: '/cars',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutUs/AboutUs.vue'),
-  },
 ];
 
 const router = createRouter({
@@ -112,9 +82,9 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = store.getters?.isAuthenticated; // Check if token is present
-  const isExpert = store.state.user?.isExpert; // Check if user is an expert
-  const isAvtovukyp = store.state.user?.isAvtovukyp; // Check if user is an expert
+  const isAuthenticated = store.getters?.isAuthenticated;
+  const isExpert = store.getters?.isExpert;
+  const isAvtovukyp = store.getters?.getUser;
 
   if (to.name === 'experts' && (!isAuthenticated || !isExpert)) {
     next({ name: 'home' });
@@ -125,7 +95,6 @@ router.beforeEach((to, from, next) => {
   } else if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'signin' });
   } else {
-    // Proceed to the next route
     next();
   }
 });

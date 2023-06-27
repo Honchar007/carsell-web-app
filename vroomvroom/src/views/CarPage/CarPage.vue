@@ -202,6 +202,7 @@ export default defineComponent({
         text: curUserComment.value,
       }, route.params.id as string);
       curUserComment.value = '';
+      window.location.reload();
     };
 
     onMounted(async () => {

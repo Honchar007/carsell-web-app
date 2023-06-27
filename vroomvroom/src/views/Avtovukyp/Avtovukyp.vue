@@ -9,6 +9,7 @@
         :price="car.price"
         :volume="car.volume"
         :odometr="car.odometr"
+        :fuel="car.fuel"
         :year="car.year"
         :transmission="car.transmission"
         :description="car.description"

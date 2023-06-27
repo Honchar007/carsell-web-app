@@ -89,6 +89,7 @@
         :year="car.year"
         :transmission="car.transmission"
         :description="car.description"
+        :fuel="car.fuel"
         :link-path="car._id"
       />
     </div>
@@ -96,7 +97,7 @@
       <div class="btn" aria-label="Previous page" @click="previousPage" :disabled="currPage === 1">
         &#10094;
       </div>
-      <span class="pages">Page {{ currPage }} of {{ totalP }}</span>
+      <span class="pages">Сторінка {{ currPage }} з {{ totalP == 0 ? 1 : totalP}}</span>
 
       <div class="btn" aria-label="Next page" @click="nextPage" :disabled="currPage === totalP">
         &#10095;

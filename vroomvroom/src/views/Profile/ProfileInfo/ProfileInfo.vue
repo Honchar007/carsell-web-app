@@ -1,6 +1,8 @@
 <template>
   <div class="profile-wrapper">
-    <div class="profile-avatar"><img src="@/assets/profile-default.jpg" alt="profile"></div>
+    <div class="profile-avatar">
+      <img v-if="image != ''" :src="getBase64Img(image.type, decodeURIComponent(image.content))" :alt="user.firstName">
+      <img v-else src="@/assets/profile-default.jpg" alt="profile"></div>
     <div class="profile-info">
       <div>
         Ім'я: {{ user.firstName }}
@@ -16,7 +18,12 @@
   </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
+import AuthApi from '@/api/auth.api';
+import CommonApi from '@/api/common.api';
+import getBase64Img from '@/shared/helpers/get-base64-img';
+import {
+  computed, defineComponent, onBeforeMount, onMounted, ref, watch,
+} from 'vue';
 import { useStore } from 'vuex';
 
 // components
@@ -33,15 +40,42 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const isPageReloaded = true;
 
+    const image = ref<any>('');
     // computed
     const isAuthenticated = computed(() => store.getters.isAuthenticated);
+    const token = computed(() => store.getters.getToken);
 
     const user = computed(() => store.getters.getUser);
 
     // helpers
+    const fetchCarImages = async () => {
+      const userEmail = window.localStorage.getItem('user_email');
+      const userTemp = await AuthApi.getUserInfo(token.value, JSON.parse(userEmail ?? ''));
+      console.log(userTemp);
+
+      if (userTemp && userTemp.avatarPath) {
+        console.log(userTemp.avatarPath);
+        const imageTemp = await CommonApi.getImages(userTemp.email ?? '', user.value.avatarPath);
+        const [imageProfile] = imageTemp;
+        image.value = { ...imageProfile };
+        console.log(image.value);
+      }
+    };
+
+    onMounted(() => {
+      console.log('reload');
+      fetchCarImages();
+    });
+
+    watch(user, async (newUser) => {
+      fetchCarImages();
+    });
 
     return {
+      getBase64Img,
+      image,
       user,
     };
   },

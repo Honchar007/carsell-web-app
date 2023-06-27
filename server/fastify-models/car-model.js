@@ -17,6 +17,7 @@ const CarSchema = {
     volume: { type: 'number', description: 'Car volume' },
     transmission: { type: 'string', description: 'Car transmission type' },
     color: { type: 'string', description: 'Car color' },
+    fuel: { type: 'string', description: 'Car type fuel' },
     year: { type: 'number', description: 'Car manufacturing year' },
     town: { type: 'string', description: 'Car town' },
     odometr: { type: 'number', description: 'Car odometer reading' },
@@ -77,6 +78,17 @@ const getAllCarsSchema = {
   },
 };
 
+const getAllAvtovykupCarsSchema = {
+  description: 'Get all cars',
+  tags: ['Cars'],
+  response: {
+    200: {
+      type: 'array',
+      items: CarSchema,
+    },
+  },
+};
+
 const getAllOwnerCarsSchema = {
   description: 'Get all cars',
   tags: ['Cars'],
@@ -96,6 +108,7 @@ const getAllOwnerCarsSchema = {
 
 const createCarSchema = {
   tags: ['Cars'],
+  security: [{ bearerAuth: [] }],
   body: {
     type: 'object',
     properties: {
@@ -143,6 +156,7 @@ const createCarSchema = {
 
 const updateCarSchema = {
   tags: ['Cars'],
+  security: [{ bearerAuth: [] }],
   params: {
     type: 'object',
     properties: {
@@ -163,6 +177,7 @@ const updateCarSchema = {
       volume: { type: 'number', description: 'Car volume' },
       transmission: { type: 'string', description: 'Car transmission type' },
       color: { type: 'string', description: 'Car color' },
+      fuel: { type: 'string', description: 'Car type fuel' },
       year: { type: 'number', description: 'Car manufacturing year' },
       odometr: { type: 'number', description: 'Car odometer reading' },
       vincode: { type: 'string', description: 'Car VIN code' },
@@ -177,6 +192,7 @@ const updateCarSchema = {
 
 const deleteCarSchema = {
   tags: ['Cars'],
+  security: [{ bearerAuth: [] }],
   params: {
     type: 'object',
     properties: {
@@ -210,6 +226,7 @@ module.exports = {
   getAllCarsSchema,
   getCarSchema,
   createCarSchema,
+  getAllAvtovykupCarsSchema,
   updateCarSchema,
   deleteCarSchema,
   getAllOwnerCarsSchema,

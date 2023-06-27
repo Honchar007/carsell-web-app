@@ -4,7 +4,6 @@
 
 export default function toFormData(model: any) {
   const formData = new FormData();
-
   // eslint-disable-next-line no-restricted-syntax
   for (const key of Object.keys(model)) {
     const value = model[key];
